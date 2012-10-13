@@ -53,8 +53,11 @@
 #define SYSTEM_PWRSAVE_MODE	(2)
 #define SYSTEM_MODE_END 		(SYSTEM_PWRSAVE_MODE + 1)
 #define SYSTEM_PWRSAVE_MODE_MAX_FREQ	(1000000)
+#ifdef CONFIG_TF300T_OC
+unsigned int power_mode_table[SYSTEM_MODE_END] = {1000000,1200000,2000000};
+#else
 unsigned int power_mode_table[SYSTEM_MODE_END] = {1000000,1200000,1400000};
-
+#endif
 #define CAMERA_ENABLE_EMC_MINMIAM_RATE (667000000)
 /* tegra throttling and edp governors require frequencies in the table
    to be in ascending order */
@@ -450,9 +453,11 @@ static void edp_update_limit(void)
 #else
 	unsigned int i;
 	for (i = 0; freq_table[i].frequency != CPUFREQ_TABLE_END; i++) {
+#ifndef CONFIG_TF300T_OC
 		if (freq_table[i].frequency > limit) {
 			break;
 		}
+#endif
 	}
 	BUG_ON(i == 0);	/* min freq above the limit or table empty */
 	edp_limit = freq_table[i-1].frequency;
@@ -1062,7 +1067,11 @@ static struct notifier_block tegra_cpu_pm_notifier = {
 void rebuild_max_freq_table(unsigned int max_rate)
 {
 	power_mode_table[SYSTEM_NORMAL_MODE] = max_rate;
+#ifdef CONFIG_TF300T_OC
+	power_mode_table[SYSTEM_BALANCE_MODE] = 1200000;
+#else
 	power_mode_table[SYSTEM_BALANCE_MODE] = max_rate - 200000;
+#endif
 	power_mode_table[SYSTEM_PWRSAVE_MODE] = SYSTEM_PWRSAVE_MODE_MAX_FREQ;
 }
 
