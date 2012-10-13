@@ -241,6 +241,15 @@ config EFI_PARTITION
 	  Say Y here if you would like to use hard disks under Linux which
 	  were partitioned using EFI GPT.
 
+config TF300T_PARTITION
+	bool "expose SOS/LNX partitions"
+	depends on EFI_PARTITION
+	depends on PARTITION_ADVANCED
+	default n
+	help
+	  Say Y here if you would like access to the SOS and LNX partitions
+	  of the ASUS TF300T tablet.
+
 config SYSV68_PARTITION
 	bool "SYSV68 partition table support" if PARTITION_ADVANCED
 	default y if VME

@@ -99,6 +99,9 @@
 #include <linux/slab.h>
 #include "check.h"
 #include "efi.h"
+#ifdef CONFIG_TF300T_PARTITION
+#include "tf300t.h"
+#endif
 
 /* This allows a kernel command line option 'gpt' to override
  * the test for invalid PMBR.  Not __initdata because reloading
@@ -682,5 +685,8 @@ int efi_partition(struct parsed_partitions *state)
 	kfree(ptes);
 	kfree(gpt);
 	strlcat(state->pp_buf, "\n", PAGE_SIZE);
+#ifdef CONFIG_TF300T_PARTITION
+	tf300t_partition(state, gpt->num_partition_entries);
+#endif
 	return 1;
 }
