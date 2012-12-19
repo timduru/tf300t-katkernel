@@ -198,21 +198,20 @@ static struct tegra_thermal_data thermal_data = {
 };
 
 #ifdef CONFIG_BT_BLUESLEEP
-static struct rfkill_gpio_platform_data cardhu_bt_rfkill_pdata[] = {
+static struct resource cardhu_bcm4329_rfkill_resources[] = {
 	{
-		.name           = "bt_rfkill",
-		.shutdown_gpio  = TEGRA_GPIO_PU0,
-		.reset_gpio     = TEGRA_GPIO_INVALID,
-		.type           = RFKILL_TYPE_BLUETOOTH,
+		.name   = "bcm4329_nshutdown_gpio",
+		.start  = TEGRA_GPIO_PU0,
+		.end    = TEGRA_GPIO_PU0,
+		.flags  = IORESOURCE_IO,
 	},
 };
 
-static struct platform_device cardhu_bt_rfkill_device = {
-	.name = "rfkill_gpio",
+static struct platform_device cardhu_bcm4329_rfkill_device = {
+	.name = "bcm4329_rfkill",
 	.id             = -1,
-	.dev = {
-		.platform_data = &cardhu_bt_rfkill_pdata,
-	},
+	.num_resources  = ARRAY_SIZE(cardhu_bcm4329_rfkill_resources),
+	.resource       = cardhu_bcm4329_rfkill_resources,
 };
 
 static struct resource cardhu_bluesleep_resources[] = {
@@ -243,9 +242,11 @@ static struct platform_device cardhu_bluesleep_device = {
 	.resource       = cardhu_bluesleep_resources,
 };
 
+extern void bluesleep_setup_uart_port(struct platform_device *uart_dev);
 static noinline void __init cardhu_setup_bluesleep(void)
 {
 	platform_device_register(&cardhu_bluesleep_device);
+	bluesleep_setup_uart_port(&tegra_uartc_device);
 	return;
 }
 #elif defined CONFIG_BLUEDROID_PM
@@ -983,7 +984,7 @@ static struct platform_device *cardhu_devices[] __initdata = {
 	&bluetooth_dit_device,
 	&baseband_dit_device,
 #ifdef CONFIG_BT_BLUESLEEP
-	&cardhu_bt_rfkill_device,
+	&cardhu_bcm4329_rfkill_device,
 #endif
 	&tegra_pcm_device,
 	&cardhu_audio_device,
