@@ -54,6 +54,7 @@ obj-$(CONFIG_APANIC)		+= apanic.o
 obj-$(CONFIG_SENSORS_AK8975)	+= akm8975.o
 obj-$(CONFIG_SENSORS_NCT1008)	+= nct1008.o
 obj-$(CONFIG_BCM4329_RFKILL)	+= bcm4329_rfkill.o
+obj-$(CONFIG_BCM4330_RFKILL)    += bcm4330_rfkill.o
 obj-y	+= inv_mpu/
 obj-y	+= inv_mpu6050/
 obj-y	+= kxt_9.o
