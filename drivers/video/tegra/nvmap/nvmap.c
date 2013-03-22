@@ -269,7 +269,7 @@ int nvmap_pin_ids(struct nvmap_client *client,
 		  unsigned int nr, const unsigned long *ids)
 {
 	int ret = 0;
-	unsigned int i;
+	int i;
 	struct nvmap_handle **h = (struct nvmap_handle **)ids;
 	struct nvmap_handle_ref *ref;
 
