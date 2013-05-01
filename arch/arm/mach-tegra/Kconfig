@@ -117,6 +117,13 @@ config TEGRA_IRDA
 	help
 	  Adds support for Vishay IrDA transceiver at UARTB port
 	  of Verbier Boards(E1186 and E1198) with no ULPI rework done.
+config TEGRA_AHB
+	bool "Enable AHB driver for NVIDIA Tegra SoCs"
+	default y
+	help
+	  Adds AHB configuration functionality for NVIDIA Tegra SoCs,
+	  which controls AHB bus master arbitration and some
+	  perfomance parameters(priority, prefech size).
 
 comment "Tegra board type"
 
