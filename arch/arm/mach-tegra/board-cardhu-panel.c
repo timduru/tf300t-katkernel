@@ -843,6 +843,17 @@ static struct tegra_dc_sd_settings cardhu_sd_settings = {
 	.bin_width = -1,
 	.aggressiveness = 1,
 	.phase_in_adjustments = true,
+#ifdef CONFIG_TEGRA_SD_GEN2
+       .k_limit_enable = true,
+       .k_limit = 180,
+       .sd_window_enable = false,
+       .soft_clipping_enable = true,
+       /* Low soft clipping threshold to compensate for aggressive k_limit */
+       .soft_clipping_threshold = 128,
+       .smooth_k_enable = true,
+       .smooth_k_incr = 4,
+#endif
+
 	.use_vid_luma = false,
 	/* Default video coefficients */
 	.coeff = {5, 9, 2},
