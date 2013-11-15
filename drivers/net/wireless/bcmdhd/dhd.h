@@ -640,7 +640,7 @@ extern uint dhd_pktgen_len;
 
 
 #define MAX_DTIM_SKIP_BEACON_INTERVAL	100 /* max allowed associated AP beacon for DTIM skip */
-#define MAX_DTIM_ALLOWED_INTERVAL 300 /* max allowed total beacon interval for DTIM skip */
+#define MAX_DTIM_ALLOWED_INTERVAL 600 /* max allowed total beacon interval for DTIM skip */
 #define NO_DTIM_SKIP 1
 
 /* optionally set by a module_param_string() */
