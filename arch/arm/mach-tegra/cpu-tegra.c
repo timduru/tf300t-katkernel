@@ -167,7 +167,7 @@ static int gps_state_set(const char *arg, const struct kernel_param *kp)
 	int ret = 0;
 	static struct clk *c=NULL;
 	static int emc_min_rate=0;
-	#define MINMIAM_RATE (204000000)
+	#define MINMIAM_RATE (51000000)
 	if (c==NULL)
 		c=tegra_get_clock_by_name("emc");
 
