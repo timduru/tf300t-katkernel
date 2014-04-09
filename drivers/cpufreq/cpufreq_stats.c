@@ -91,6 +91,10 @@ static int cpufreq_stats_update(unsigned int cpu)
 	}
 
 	all_stat = per_cpu(all_cpufreq_stats, cpu);
+	if (!stat) {
+		spin_unlock(&cpufreq_stats_lock);
+		return 0;
+	}
 	if (stat->time_in_state && stat->last_index >= 0) {
 		stat->time_in_state[stat->last_index] =
 			cputime64_add(stat->time_in_state[stat->last_index],
@@ -496,6 +500,12 @@ static void cpufreq_powerstats_create(unsigned int cpu,
 	per_cpu(cpufreq_power_stats, cpu) = powerstats;
 	spin_unlock(&cpufreq_stats_lock);
 }
+static int compare_for_sort(const void *lhs_ptr, const void *rhs_ptr)
+{
+	unsigned int lhs = *(const unsigned int *)(lhs_ptr);
+	unsigned int rhs = *(const unsigned int *)(rhs_ptr);
+	return (lhs - rhs);
+}
 
 static bool check_all_freq_table(unsigned int freq)
 {
@@ -536,6 +546,7 @@ static void cpufreq_allstats_create(unsigned int cpu,
 	int i , j = 0;
 	unsigned int alloc_size;
 	struct all_cpufreq_stats *all_stat;
+	bool sort_needed = false;
 
 	all_stat = kzalloc(sizeof(struct all_cpufreq_stats),
 			GFP_KERNEL);
@@ -556,16 +567,23 @@ static void cpufreq_allstats_create(unsigned int cpu,
 	all_stat->freq_table = (unsigned int *)
 		(all_stat->time_in_state + count);
 
+	spin_lock(&cpufreq_stats_lock);
 	for (i = 0; table[i].frequency != CPUFREQ_TABLE_END; i++) {
 		unsigned int freq = table[i].frequency;
 		if (freq == CPUFREQ_ENTRY_INVALID)
 			continue;
 		all_stat->freq_table[j++] = freq;
-		if (all_freq_table && !check_all_freq_table(freq))
+		if (all_freq_table && !check_all_freq_table(freq)) {
 			add_all_freq_table(freq);
+			sort_needed = true;
+		}
 	}
+	if (sort_needed)
+		sort(all_freq_table->freq_table, all_freq_table->table_size,
+				sizeof(unsigned int), &compare_for_sort, NULL);
 	all_stat->state_num = j;
 	per_cpu(all_cpufreq_stats, cpu) = all_stat;
+	spin_unlock(&cpufreq_stats_lock);
 }
 
 static int cpufreq_stat_notifier_policy(struct notifier_block *nb,
@@ -714,17 +732,6 @@ static struct notifier_block notifier_trans_block = {
 	.notifier_call = cpufreq_stat_notifier_trans
 };
 
-static int compare_for_sort(const void *lhs_ptr, const void *rhs_ptr)
-{
-	unsigned int lhs = *(const unsigned int *)(lhs_ptr);
-	unsigned int rhs = *(const unsigned int *)(rhs_ptr);
-	if (lhs < rhs)
-		return -1;
-	if (lhs > rhs)
-		return 1;
-	return 0;
-}
-
 static int __init cpufreq_stats_init(void)
 {
 	int ret;
@@ -750,12 +757,6 @@ static int __init cpufreq_stats_init(void)
 	}
 
 	create_all_freq_table();
-//	for_each_possible_cpu(cpu) {
-//		cpufreq_allstats_create(cpu);
-//	}
-	if (all_freq_table && all_freq_table->freq_table)
-		sort(all_freq_table->freq_table, all_freq_table->table_size,
-				sizeof(unsigned int), &compare_for_sort, NULL);
 	ret = sysfs_create_file(cpufreq_global_kobject,
 			&_attr_all_time_in_state.attr);
 	if (ret)
