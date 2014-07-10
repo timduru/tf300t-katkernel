@@ -371,6 +371,8 @@ KBUILD_CFLAGS   := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
 		   -fno-delete-null-pointer-checks \
 	           -fomit-frame-pointer -O3 \
 		   -mfpu=neon -ftree-vectorize
+KBUILD_CFLAGS   += -Wno-error=array-bounds -Wno-error=sequence-point
+
 KBUILD_AFLAGS_KERNEL :=
 KBUILD_CFLAGS_KERNEL :=
 KBUILD_AFLAGS   := -D__ASSEMBLY__
