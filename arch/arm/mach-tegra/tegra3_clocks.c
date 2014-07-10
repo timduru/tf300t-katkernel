@@ -4973,28 +4973,28 @@ unsigned long tegra_emc_to_cpu_ratio(unsigned long cpu_rate)
 	/* Vote on memory bus frequency based on cpu frequency;
 	   cpu rate is in kHz, emc rate is in Hz */
 		 if(!gps_enable){
-			if (cpu_rate >= 925000)
-				return emc_max_rate;	/* cpu >= 925 MHz, emc max */
-			else if (cpu_rate >= 450000)
-				return emc_max_rate/2;	/* cpu >= 450 MHz, emc max/2 */
+			if (cpu_rate >= 625000)
+				return emc_max_rate;	/* cpu >= 625 MHz, emc max */
+			else if (cpu_rate >= 400000)
+				return emc_max_rate/2;	/* cpu >= 400 MHz, emc max/2 */
 			else if (cpu_rate >= 250000)
 				return 100000000;	/* cpu >= 250 MHz, emc 100 MHz */
 			else
 				return 0;		/* emc min */
 		}
 		else{
-			if (cpu_rate >= 925000)
-				return emc_max_rate;	/* cpu >= 925 MHz, emc max */
+			if (cpu_rate >= 625000)
+				return emc_max_rate;	/* cpu >= 625 MHz, emc max */
 			else
 				return emc_max_rate/2;
 		}
 	}
 	else
 	{
-	if (cpu_rate >= 925000)
-		return emc_max_rate;	/* cpu >= 925 MHz, emc max */
-	else if (cpu_rate >= 450000)
-		return emc_max_rate/2;	/* cpu >= 450 MHz, emc max/2 */
+	if (cpu_rate >= 625000)
+		return emc_max_rate;	/* cpu >= 625 MHz, emc max */
+	else if (cpu_rate >= 400000)
+		return emc_max_rate/2;	/* cpu >= 400 MHz, emc max/2 */
 	else if (cpu_rate >= 250000)
 		return 100000000;	/* cpu >= 250 MHz, emc 100 MHz */
 	else
