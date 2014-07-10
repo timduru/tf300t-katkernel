@@ -1084,7 +1084,7 @@ static int tegra_pm_enter_suspend(void)
 	return 0;
 }
 
-extern inline u64 read_pmc_wake_status(void);
+extern u64 read_pmc_wake_status(void);
 static void tegra_pm_enter_resume(void)
 {
 	if (current_suspend_mode == TEGRA_SUSPEND_LP0)
