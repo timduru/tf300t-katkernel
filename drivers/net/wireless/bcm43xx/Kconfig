@@ -1,0 +1,62 @@
+config BCM43XX
+	tristate "Broadcom 4334/241 wireless cards support"
+	depends on MMC
+	---help---
+	  This module adds support for wireless adapters based on
+	  Broadcom 4329/30 chipset.
+
+	  This driver uses the kernel's wireless extensions subsystem.
+
+	  If you choose to build a module, it'll be called dhd. Say M if
+	  unsure.
+
+config BCM43XX_FW_DIR
+	depends on BCM43XX
+	string "Firmware dir"
+	default "/system/vendor/firmware"
+	---help---
+	  Path to the firmware file.
+
+config BCM43XX_NVRAM_PATH
+	depends on BCM43XX
+	string "NVRAM path"
+	default "/data/misc/wifi/nvram.txt"
+	---help---
+	  Path to the calibration file.
+
+config BCM43XX_WEXT
+	bool "Enable WEXT support"
+	depends on BCM43XX && CFG80211 = n
+	select WIRELESS_EXT
+	select WEXT_PRIV
+	help
+	  Enables WEXT support
+
+config DHD_USE_STATIC_BUF
+	bool "Enable memory preallocation"
+	depends on BCM43XX
+	default n
+	---help---
+	  Use memory preallocated in platform
+
+config DHD_USE_SCHED_SCAN
+	bool "Use CFG80211 sched scan"
+	depends on BCM43XX && CFG80211
+	default n
+	---help---
+	  Use CFG80211 sched scan
+
+config BCM43XX_WIFI_CONTROL_FUNC
+        bool "Use bcmdhd_wlan device"
+        depends on BCM43XX
+        default n
+        ---help---
+          Use this option to get various parameters from architecture specific
+          bcmdhd_wlan platform device. Say n if unsure.
+
+config BCM43XX_DYNAMIC_DTIM_SKIP
+	bool "Use dynamic dtim skip"
+	depends on BCM43XX
+	default n
+	---help---
+	  Use dynamic dtim skip for better power and perforrmance trade off.

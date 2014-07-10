@@ -1352,7 +1352,6 @@ static void sdhci_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
 
 	if (host->version >= SDHCI_SPEC_300) {
 		u16 clk, ctrl_2;
-		unsigned int clock;
 
 		/* In case of UHS-I modes, set High Speed Enable */
 		if (((ios->timing == MMC_TIMING_UHS_SDR50) ||
@@ -2254,7 +2253,13 @@ static irqreturn_t sdhci_irq(int irq, void *dev_id)
 		sdhci_writel(host, intmask & (SDHCI_INT_CARD_INSERT |
 			     SDHCI_INT_CARD_REMOVE), SDHCI_INT_STATUS);
 		intmask &= ~(SDHCI_INT_CARD_INSERT | SDHCI_INT_CARD_REMOVE);
-		tasklet_schedule(&host->card_tasklet);
+
+		/*
+		 * Bypass redundant sdhci register detection.
+		 * SD init works only when carddetect pin is varied.
+		 */
+		if (strcmp(mmc_hostname(host->mmc), "mmc2"))
+			tasklet_schedule(&host->card_tasklet);
 	}
 
 	if (intmask & SDHCI_INT_CMD_MASK) {
@@ -2320,20 +2325,34 @@ out:
 int sdhci_suspend_host(struct sdhci_host *host, pm_message_t state)
 {
 	int ret = 0;
+	bool has_tuning_timer;
 	struct mmc_host *mmc = host->mmc;
 
 	sdhci_disable_card_detection(host);
 
 	/* Disable tuning since we are suspending */
-	if (host->version >= SDHCI_SPEC_300 && host->tuning_count &&
-	    host->tuning_mode == SDHCI_TUNING_MODE_1) {
+	has_tuning_timer = host->version >= SDHCI_SPEC_300 &&
+		host->tuning_count && host->tuning_mode == SDHCI_TUNING_MODE_1;
+	if (has_tuning_timer) {
 		host->flags &= ~SDHCI_NEEDS_RETUNING;
 		mod_timer(&host->tuning_timer, jiffies +
 			host->tuning_count * HZ);
 	}
 
-	if (mmc->card)
+	if (mmc->card) {
 		ret = mmc_suspend_host(host->mmc);
+		if (ret) {
+			if (has_tuning_timer) {
+				host->flags |= SDHCI_NEEDS_RETUNING;
+				mod_timer(&host->tuning_timer, jiffies +
+						host->tuning_count * HZ);
+			}
+
+			sdhci_enable_card_detection(host);
+
+			return ret;
+		}
+	}
 
 	if (mmc->pm_flags & MMC_PM_KEEP_POWER)
 		host->card_int_set = sdhci_readl(host, SDHCI_INT_ENABLE) &

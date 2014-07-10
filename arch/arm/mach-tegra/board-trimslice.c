@@ -6,6 +6,7 @@
  *
  * Based on board-harmony.c
  * Copyright (C) 2010 Google, Inc.
+ * Copyright (C) 2011-2012 NVIDIA Corporation.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -95,7 +96,7 @@ static struct platform_device *trimslice_devices[] __initdata = {
 	&tegra_das_device,
 	&tegra_pcm_device,
 	&trimslice_audio_device,
-	&trimslice_pci_platform_data,
+	&tegra_pci_device,
 };
 
 static struct i2c_board_info trimslice_i2c3_board_info[] = {
@@ -158,7 +159,7 @@ static __initdata struct tegra_clk_init_table trimslice_clk_init_table[] = {
 static void __init tegra_trimslice_init(void)
 {
 	tegra_clk_init_from_table(trimslice_clk_init_table);
-
+	tegra_soc_device_init("trimslice");
 	trimslice_pinmux_init();
 
 	tegra_sdhci_device1.dev.platform_data = &sdhci_pdata1;

@@ -830,6 +830,9 @@ static int usb_stor_scan_thread(void * __us)
 	struct device *dev = &us->pusb_intf->dev;
 
 	dev_dbg(dev, "device found\n");
+	wake_lock_init(&us->scsi_scan_wake_lock, WAKE_LOCK_SUSPEND, us->scsi_name);
+	wake_lock(&us->scsi_scan_wake_lock);
+	printk("%s wake_lock_init +\n", us->scsi_name);
 
 	set_freezable_with_signal();
 	/*
@@ -866,6 +869,10 @@ static int usb_stor_scan_thread(void * __us)
 
 		/* Should we unbind if no devices were detected? */
 	}
+
+	wake_unlock(&us->scsi_scan_wake_lock);
+	wake_lock_destroy(&us->scsi_scan_wake_lock);
+	printk("%s wake_lock_destroy -\n", us->scsi_name);
 
 	usb_autopm_put_interface(us->pusb_intf);
 	complete_and_exit(&us->scanning_done, 0);

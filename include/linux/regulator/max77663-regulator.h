@@ -3,7 +3,7 @@
  * Maxim LDO and Buck regulators driver
  *
  * Copyright 2011-2012 Maxim Integrated Products, Inc.
- * Copyright (C) 2011-2012 NVIDIA Corporation
+ * Copyright (c) 2011-2012, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -106,6 +106,9 @@ enum max77663_regulator_fps_src {
 
 /* Tracking for LDO4 */
 #define LDO4_EN_TRACKING	0x100
+
+/* Disable Active Discharge Function */
+#define ADE_DISABLE		0x200
 
 struct max77663_regulator_fps_cfg {
 	enum max77663_regulator_fps_src src;

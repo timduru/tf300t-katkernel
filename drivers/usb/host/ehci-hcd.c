@@ -450,12 +450,16 @@ static void ehci_shutdown(struct usb_hcd *hcd)
 {
 	struct ehci_hcd	*ehci = hcd_to_ehci(hcd);
 
+	pr_info("%s +\n", __func__);
+
 	del_timer_sync(&ehci->watchdog);
 	del_timer_sync(&ehci->iaa_watchdog);
 
 	spin_lock_irq(&ehci->lock);
 	ehci_silence_controller(ehci);
 	spin_unlock_irq(&ehci->lock);
+
+	pr_info("%s -\n", __func__);
 }
 
 static void ehci_port_power (struct ehci_hcd *ehci, int is_on)

@@ -45,6 +45,9 @@
 #include <asm/uaccess.h>
 
 #include "queue.h"
+#include "../debug_mmc.h"
+#include "../core/sd.h"
+#include "../core/core.h"
 
 MODULE_ALIAS("mmc:block");
 #ifdef MODULE_PARAM_PREFIX
@@ -58,8 +61,6 @@ MODULE_ALIAS("mmc:block");
 #define INAND_CMD38_ARG_SECERASE 0x80
 #define INAND_CMD38_ARG_SECTRIM1 0x81
 #define INAND_CMD38_ARG_SECTRIM2 0x88
-
-#define MMC_CMD_RETRIES 	10
 
 static DEFINE_MUTEX(block_mutex);
 
@@ -635,7 +636,7 @@ static int mmc_blk_cmd_recovery(struct mmc_card *card, struct request *req,
 			break;
 
 		prev_cmd_status_valid = false;
-		pr_err("%s: error %d sending status command, %sing\n",
+		pr_debug("%s: error %d sending status command, %sing\n",
 		       req->rq_disk->disk_name, err, retry ? "retry" : "abort");
 	}
 
@@ -945,7 +946,6 @@ static void mmc_blk_rw_rq_prep(struct mmc_queue_req *mqrq,
 	if (!mmc_card_blockaddr(card))
 		brq->cmd.arg <<= 9;
 	brq->cmd.flags = MMC_RSP_SPI_R1 | MMC_RSP_R1 | MMC_CMD_ADTC;
-	brq->cmd.retries = MMC_CMD_RETRIES;
 	brq->data.blksz = 512;
 	brq->stop.opcode = MMC_STOP_TRANSMISSION;
 	brq->stop.arg = 0;
@@ -1080,6 +1080,29 @@ static int mmc_blk_issue_rw_rq(struct mmc_queue *mq, struct request *rqc)
 		brq = &mq_rq->brq;
 		req = mq_rq->req;
 		mmc_queue_bounce_post(mq_rq);
+
+		/*
+		 * SD Workaround: downgrade frequency for seldom specific sdcard
+		 */
+                if (disable_multi == 1) {
+                        if (UHS_SDR104_MAX_DTR == card->host->ios.clock) {
+                                MMC_printk("SD freq. down to UHS_SDR50_MAX_DTR");
+                                mmc_set_clock(card->host, UHS_SDR50_MAX_DTR);
+                        }
+                        else if (UHS_SDR50_MAX_DTR == card->host->ios.clock) {
+                                MMC_printk("SD freq. down to UHS_SDR25_MAX_DTR");
+                                mmc_set_clock(card->host, UHS_SDR25_MAX_DTR);
+                        }
+                        else if (UHS_SDR25_MAX_DTR == card->host->ios.clock) {
+                                MMC_printk("SD freq. down to UHS_SDR20_5_MAX_DTR");
+                                mmc_set_clock(card->host, UHS_SDR20_5_MAX_DTR);
+                        }
+                        else if (UHS_SDR20_5_MAX_DTR == card->host->ios.clock) {
+                                MMC_printk("SD freq. down to UHS_SDR12_MAX_DTR");
+                                mmc_set_clock(card->host, UHS_SDR12_MAX_DTR);
+                        }
+                        disable_multi = 0;
+                }
 
 		switch (status) {
 		case MMC_BLK_SUCCESS:

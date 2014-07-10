@@ -65,6 +65,7 @@ enum {
 #include <linux/string.h>
 #include <linux/fs.h>
 #include <linux/workqueue.h>
+#include <linux/wakelock.h>
 
 struct partition {
 	unsigned char boot_ind;		/* 0x80 - active */
@@ -190,6 +191,7 @@ struct gendisk {
 	struct blk_integrity *integrity;
 #endif
 	int node_id;
+	struct wake_lock sd_wake_lock;
 };
 
 static inline struct gendisk *part_to_disk(struct hd_struct *part)
@@ -594,6 +596,7 @@ extern char *disk_name (struct gendisk *hd, int partno, char *buf);
 
 extern int disk_expand_part_tbl(struct gendisk *disk, int target);
 extern int rescan_partitions(struct gendisk *disk, struct block_device *bdev);
+extern int invalidate_partitions(struct gendisk *disk, struct block_device *bdev);
 extern struct hd_struct * __must_check add_partition(struct gendisk *disk,
 						     int partno, sector_t start,
 						     sector_t len, int flags,

@@ -17,11 +17,16 @@
 #include <linux/usb/serial.h>
 #include <linux/slab.h>
 #include "usb-wwan.h"
+#include "qcserial.h"
+#include "../../ril/ril_wakeup.h"
 
 #define DRIVER_AUTHOR "Qualcomm Inc"
 #define DRIVER_DESC "Qualcomm USB Serial driver"
 
-static int debug;
+//static int debug;
+static int debug = 1;
+static int last_serial_num = -1;
+static struct usb_interface *s_dev_id = NULL;
 
 static const struct usb_device_id id_table[] = {
 	{USB_DEVICE(0x05c6, 0x9211)},	/* Acer Gobi QDL device */
@@ -86,6 +91,11 @@ static const struct usb_device_id id_table[] = {
 	{USB_DEVICE(0x05c6, 0x9204)},	/* Gobi 2000 QDL device */
 	{USB_DEVICE(0x05c6, 0x9205)},	/* Gobi 2000 Modem device */
 	{USB_DEVICE(0x1199, 0x9013)},	/* Sierra Wireless Gobi 3000 Modem device (MC8355) */
+	{USB_DEVICE(0x05c6, 0x900d)},	/* Qualcomm CDMA Technologies MSM */
+	{USB_DEVICE(0x05c6, 0x900e)},	/* Qualcomm CDMA Technologies MSM Emergency Download Mode */
+	{USB_DEVICE(0x05c6, 0x9007)},	/* Qualcomm CDMA Technologies MSM without ASUS QCN */
+	{USB_DEVICE(0x05c6, 0x9008)},	/* Qualcomm CDMA Technologies MSM Download Mode */
+	{USB_DEVICE(0x05c6, 0x900b)},	/* Qualcomm CDMA Technologies MSM with Multiple PDP */
 	{ }				/* Terminating entry */
 };
 MODULE_DEVICE_TABLE(usb, id_table);
@@ -99,6 +109,12 @@ static struct usb_driver qcdriver = {
 	.resume			= usb_serial_resume,
 	.supports_autosuspend	= true,
 };
+
+struct usb_interface *get_usb_interface(void)
+{
+	return s_dev_id;
+}
+EXPORT_SYMBOL(get_usb_interface);
 
 static int qcprobe(struct usb_serial *serial, const struct usb_device_id *id)
 {
@@ -201,6 +217,72 @@ static int qcprobe(struct usb_serial *serial, const struct usb_device_id *id)
 		}
 		break;
 
+	case 6:
+	case 7:  /* Third AT command port */
+	case 10: /* Multiple PDP */
+	case 11: /* Multiple PDP + Third AT command port */
+		/* Composite mode */
+		if (ifnum == 0) {
+			dbg("Diagnostics Monitor found");
+			retval = usb_set_interface(serial->dev, ifnum, 0);
+			if (retval < 0) {
+				dev_err(&serial->dev->dev,
+					"Could not set interface, error %d\n",
+					retval);
+				retval = -ENODEV;
+				kfree(data);
+			}
+		} else if (ifnum == 1) {
+			dbg("NMEA GPS interface found");
+			retval = usb_set_interface(serial->dev, ifnum, 0);
+			if (retval < 0) {
+				dev_err(&serial->dev->dev,
+					"Could not set interface, error %d\n",
+					retval);
+				retval = -ENODEV;
+				kfree(data);
+			}
+		} else if (ifnum == 2) {
+			dbg("Modem port found");
+			s_dev_id = serial->interface;
+			//usb bus is opened.
+			ril_wakeup_resume();
+			retval = usb_set_interface(serial->dev, ifnum, 0);
+			if (retval < 0) {
+				dev_err(&serial->dev->dev,
+					"Could not set interface, error %d\n",
+					retval);
+				retval = -ENODEV;
+				kfree(data);
+			}
+		} else if (ifnum == 3) {
+			dbg("Modem port found");
+			retval = usb_set_interface(serial->dev, ifnum, 0);
+			if (retval < 0) {
+				dev_err(&serial->dev->dev,
+					"Could not set interface, error %d\n",
+					retval);
+				retval = -ENODEV;
+				kfree(data);
+			}
+		}
+
+		if (nintf == 7 || nintf == 11) {
+			if (ifnum == 4) {
+				dbg("Modem port found");
+				retval = usb_set_interface(serial->dev, ifnum, 0);
+				if (retval < 0) {
+					dev_err(&serial->dev->dev,
+						"Could not set interface, error %d\n",
+						retval);
+					retval = -ENODEV;
+					kfree(data);
+				}
+			}
+		}
+		last_serial_num = ifnum;
+		break;
+
 	default:
 		dev_err(&serial->dev->dev,
 			"unknown number of interfaces: %d\n", nintf);
@@ -220,10 +302,42 @@ static void qc_release(struct usb_serial *serial)
 
 	dbg("%s", __func__);
 
+	s_dev_id = NULL;
+
 	/* Call usb_wwan release & free the private data allocated in qcprobe */
 	usb_wwan_release(serial);
 	usb_set_serial_data(serial, NULL);
 	kfree(priv);
+}
+
+static int qc_suspend(struct usb_serial *serial, pm_message_t message)
+{
+	int ret;
+	struct usb_interface *intf = serial->interface;
+
+	ret = usb_wwan_suspend(serial, message);
+	if (ret < 0)
+		return ret;
+
+	if (intf->cur_altsetting->desc.bInterfaceNumber == last_serial_num) {
+		ril_wakeup_suspend();
+	}
+
+	return ret;
+}
+
+static int qc_resume(struct usb_serial *serial)
+{
+	int ret;
+	struct usb_interface *intf = serial->interface;
+
+	ret = usb_wwan_resume(serial);
+
+	if (intf->cur_altsetting->desc.bInterfaceNumber == last_serial_num) {
+		ril_wakeup_resume();
+	}
+
+	return ret;
 }
 
 static struct usb_serial_driver qcdevice = {
@@ -245,8 +359,8 @@ static struct usb_serial_driver qcdevice = {
 	.disconnect	     = usb_wwan_disconnect,
 	.release	     = qc_release,
 #ifdef CONFIG_PM
-	.suspend	     = usb_wwan_suspend,
-	.resume		     = usb_wwan_resume,
+	.suspend	     = qc_suspend,
+	.resume		     = qc_resume,
 #endif
 };
 

@@ -3,7 +3,7 @@
  * Maxim LDO and Buck regulators driver
  *
  * Copyright 2011-2012 Maxim Integrated Products, Inc.
- * Copyright (C) 2011-2012 NVIDIA Corporation
+ * Copyright (c) 2011-2012, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -89,6 +89,11 @@
 #define SD_FPWM_MASK			0x04
 #define SD_FPWM_SHIFT			2
 
+/* Active-Low SDx Active Discharge Enable */
+#define SD_ADE_SHIFT			3
+#define SD_ADE_ACTIVE_HIGH		0
+
+
 /* SD Failling slew rate Active-Discharge Mode */
 #define SD_FSRADE_MASK			0x01
 #define SD_FSRADE_SHIFT		0
@@ -96,6 +101,8 @@
 /* LDO Configuration 3 */
 #define TRACK4_MASK			0x20
 #define TRACK4_SHIFT			5
+#define LDO_ADE_SHIFT			1
+#define LDO_ADE_ACTIVE_HIGH		1
 
 /* Voltage */
 #define SDX_VOLT_MASK			0xFF
@@ -280,7 +287,7 @@ static int max77663_regulator_set_fps(struct max77663_regulator *reg)
 		fps_mask |= FPS_PD_PERIOD_MASK;
 	}
 
-	if (fps_val)
+	if (fps_mask)
 		ret = max77663_regulator_cache_write(reg,
 					reg->regs[FPS_REG].addr, fps_mask,
 					fps_val, &reg->regs[FPS_REG].val);
@@ -704,15 +711,13 @@ skip_init_apply:
 				val |= (SD_SR_100 << SD_SR_SHIFT);
 		}
 
-		if (pdata->flags & SD_FORCED_PWM_MODE) {
-			mask |= SD_FPWM_MASK;
+		mask |= SD_FPWM_MASK;
+		if (pdata->flags & SD_FORCED_PWM_MODE)
 			val |= SD_FPWM_MASK;
-		}
 
-		if (pdata->flags & SD_FSRADE_DISABLE) {
-			mask |= SD_FSRADE_MASK;
+		mask |= SD_FSRADE_MASK;
+		if (pdata->flags & SD_FSRADE_DISABLE)
 			val |= SD_FSRADE_MASK;
-		}
 
 		ret = max77663_regulator_cache_write(reg,
 				reg->regs[CFG_REG].addr, mask, val,
@@ -753,6 +758,26 @@ skip_init_apply:
 			dev_err(reg->dev, "preinit: "
 				"Failed to set register 0x%x\n",
 				MAX77663_REG_LDO_CFG3);
+			return ret;
+		}
+	}
+
+	if (pdata->flags & ADE_DISABLE) {
+		if (reg->type == REGULATOR_TYPE_SD) {
+			mask = 1 << SD_ADE_SHIFT;
+			val = (SD_ADE_ACTIVE_HIGH ? 0 : 1) << SD_ADE_SHIFT;
+		} else {
+			mask = 1 << LDO_ADE_SHIFT;
+			val = (LDO_ADE_ACTIVE_HIGH ? 0 : 1) << LDO_ADE_SHIFT;
+		}
+		ret = max77663_regulator_cache_write(reg,
+				reg->regs[CFG_REG].addr, mask, val,
+				&reg->regs[CFG_REG].val);
+
+		if (ret < 0) {
+			dev_err(reg->dev, "preinit: "
+				"Failed to set register 0x%x\n",
+				reg->regs[CFG_REG].addr);
 			return ret;
 		}
 	}

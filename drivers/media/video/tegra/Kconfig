@@ -11,6 +11,30 @@ config TEGRA_CAMERA
 
           If unsure, say Y
 
+config VIDEO_YUV
+        tristate "YUV camera sensor support"
+        depends on I2C && ARCH_TEGRA
+        ---help---
+          This is a template driver for all YUV camera sensor
+
+config VIDEO_FJM6MO
+        tristate "FJM6MO isp sensor support"
+        depends on I2C && ARCH_TEGRA
+        ---help---
+          This is a driver for the Fujitsu M6MO ISP sensor
+          for use with the tegra isp.
+
+config VIDEO_MI1040
+        tristate "MI1040 camera sensor support"
+        depends on I2C && ARCH_TEGRA
+        ---help---
+          This is a driver for the Aptina mi1040 camera sensor
+          for use with the tegra isp.
+config VIDEO_ICATCH7002A
+        tristate "ICATCH7002A isp support"
+        depends on I2C && ARCH_TEGRA
+        ---help---
+          This is a driver for the iCatch 7002A ISP
 config TEGRA_DTV
         bool "Enable support for tegra dtv interface"
         depends on ARCH_TEGRA
@@ -25,6 +49,13 @@ config VIDEO_OV5650
         depends on I2C && ARCH_TEGRA
         ---help---
           This is a driver for the Omnivision OV5650 5MP camera sensor
+          for use with the tegra isp.
+
+config VIDEO_OV5640
+        tristate "OV5640 camera sensor support"
+        depends on I2C && ARCH_TEGRA
+        ---help---
+          This is a driver for the Omnivision OV5640 5MP camera sensor
           for use with the tegra isp.
 
 config VIDEO_OV14810
@@ -87,4 +118,11 @@ config VIDEO_AD5820
         depends on I2C && ARCH_TEGRA
         ---help---
           This is a driver for the AD5820 focuser
+          for use with the tegra isp.
+
+config VIDEO_AD5816
+        tristate "AD5816 focuser support"
+        depends on I2C && ARCH_TEGRA
+        ---help---
+          This is a driver for the AD5816 focuser
           for use with the tegra isp.

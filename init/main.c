@@ -678,8 +678,11 @@ int __init_or_module do_one_initcall(initcall_t fn)
 {
 	int count = preempt_count();
 	int ret;
-
+#ifdef CONFIG_DEBUG_ASUS
+	if(1)
+#else
 	if (initcall_debug)
+#endif
 		ret = do_one_initcall_debug(fn);
 	else
 		ret = fn();

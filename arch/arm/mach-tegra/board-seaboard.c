@@ -169,7 +169,7 @@ static void __init tegra_seaboard_init(void)
 	debug_uart_platform_data[0].membase = IO_ADDRESS(TEGRA_UARTD_BASE);
 	debug_uart_platform_data[0].mapbase = TEGRA_UARTD_BASE;
 	debug_uart_platform_data[0].irq = INT_UARTD;
-
+	tegra_soc_device_init("seaboard");
 	seaboard_common_init();
 
 	seaboard_i2c_init();
@@ -182,6 +182,7 @@ static void __init tegra_kaen_init(void)
 	debug_uart_platform_data[0].mapbase = TEGRA_UARTB_BASE;
 	debug_uart_platform_data[0].irq = INT_UARTB;
 
+	tegra_soc_device_init("kaen");
 	seaboard_common_init();
 
 	seaboard_i2c_init();
@@ -193,7 +194,7 @@ static void __init tegra_wario_init(void)
 	debug_uart_platform_data[0].membase = IO_ADDRESS(TEGRA_UARTB_BASE);
 	debug_uart_platform_data[0].mapbase = TEGRA_UARTB_BASE;
 	debug_uart_platform_data[0].irq = INT_UARTB;
-
+	tegra_soc_device_init("wario");
 	seaboard_common_init();
 
 	seaboard_i2c_init();

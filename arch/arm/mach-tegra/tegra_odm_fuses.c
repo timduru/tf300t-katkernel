@@ -53,6 +53,7 @@
 
 #define NFUSES	64
 #define STATE_IDLE	(0x4 << 16)
+#define SENSE_DONE	(0x1 << 30)
 
 /* since fuse burning is irreversible, use this for testing */
 #define ENABLE_FUSE_BURNING 1
@@ -607,6 +608,17 @@ static void fuse_program_array(int pgm_cycles)
 	}
 
 	fuse_power_disable();
+
+	/*
+	 * Wait until done (polling)
+	 * this one needs to use fuse_sense done, the FSM follows a periodic
+	 * sequence that includes idle
+	 */
+	do {
+		udelay(1);
+		reg = tegra_fuse_readl(FUSE_CTRL);
+	} while ((reg & (0x1 << 30)) != SENSE_DONE);
+
 }
 
 static int fuse_set(enum fuse_io_param io_param, u32 *param, int size)
@@ -645,7 +657,11 @@ EXPORT_SYMBOL(tegra_fuse_regulator_en);
 #define PMC_OSC_OVERRIDE	BIT(0)
 #define PMC_OSC_FREQ_MASK	(BIT(2) | BIT(3))
 #define PMC_OSC_FREQ_SHIFT	2
+#if defined(CONFIG_ARCH_TEGRA_2x_SOC)
 #define CAR_OSC_FREQ_SHIFT	30
+#else
+#define CAR_OSC_FREQ_SHIFT	28
+#endif
 
 #define FUSE_SENSE_DONE_BIT	BIT(30)
 #define START_DATA		BIT(0)
@@ -885,7 +901,7 @@ static ssize_t fuse_show(struct kobject *kobj, struct kobj_attribute *attr, char
 {
 	enum fuse_io_param param = fuse_name_to_param(attr->attr.name);
 	u32 data[8];
-	char str[8];
+	char str[9]; /* extra byte for null character */
 	int ret, i;
 
 	if ((param == -1) || (param == -ENODATA)) {

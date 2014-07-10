@@ -108,6 +108,9 @@ struct tps6591x_platform_data {
 	bool use_power_off;
 };
 
+int tps6591x_set_reg_enable_record(void);
+int tps6591x_set_reg_disable_record(void);
+
 /*
  * NOTE: the functions below are not intended for use outside
  * of the TPS6591X sub-device drivers

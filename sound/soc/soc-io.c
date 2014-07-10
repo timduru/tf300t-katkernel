@@ -14,6 +14,7 @@
 #include <linux/i2c.h>
 #include <linux/spi/spi.h>
 #include <sound/soc.h>
+#include <linux/delay.h>
 
 #include <trace/events/asoc.h>
 
@@ -131,6 +132,7 @@ static unsigned int do_i2c_read(struct snd_soc_codec *codec,
 	struct i2c_msg xfer[2];
 	int ret;
 	struct i2c_client *client = codec->control_data;
+	int retry = 0;
 
 	/* Write register */
 	xfer[0].addr = client->addr;
@@ -147,11 +149,24 @@ static unsigned int do_i2c_read(struct snd_soc_codec *codec,
 	ret = i2c_transfer(client->adapter, xfer, 2);
 	if (ret == 2)
 		return 0;
+	else{
+		printk("%s i2c_transfer() returned %d\n", __func__, ret);
+		while((retry < 5) && ret != 2){
+			msleep(1);
+			retry++;
+			ret = i2c_transfer(client->adapter, xfer, 2);
+			printk("i2c_transfer() retry = %d\n", retry);
+		}
+	}
+
+	if (ret == 2)
+		return 0;
 	else if (ret < 0)
 		return ret;
 	else
 		return -EIO;
 }
+
 #endif
 
 #if defined(CONFIG_I2C) || (defined(CONFIG_I2C_MODULE) && defined(MODULE))

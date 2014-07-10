@@ -132,4 +132,8 @@ source "drivers/iommu/Kconfig"
 
 source "drivers/virt/Kconfig"
 
+source "drivers/ril/Kconfig"
+
+source "drivers/asus_gps/Kconfig"
+
 endmenu

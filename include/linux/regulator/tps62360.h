@@ -32,7 +32,6 @@
  * struct tps62360_regulator_platform_data - tps62360 regulator platform data.
  *
  * @reg_init_data: The regulator init data.
- * @en_force_pwm: Enable force pwm or not.
  * @en_discharge: Enable discharge the output capacitor via internal
  *                register.
  * @en_internal_pulldn: internal pull down enable or not.
@@ -45,7 +44,6 @@
  */
 struct tps62360_regulator_platform_data {
 	struct regulator_init_data reg_init_data;
-	bool en_force_pwm;
 	bool en_discharge;
 	bool en_internal_pulldn;
 	int vsel0_gpio;
@@ -53,5 +51,8 @@ struct tps62360_regulator_platform_data {
 	int vsel0_def_state;
 	int vsel1_def_state;
 };
+
+int tps62360_set_force_pwm_mode(void);
+int tps62360_set_normal_mode(void);
 
 #endif /* __LINUX_REGULATOR_TPS62360_H */

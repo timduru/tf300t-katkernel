@@ -1,0 +1,5 @@
+config ASUS_GPS
+	tristate "The ASUS GPS driver"
+	help
+		A simple driver which unregisters and registers the USB host controller
+		when doing suspend/resume for GPS dongle.

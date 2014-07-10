@@ -1,6 +1,8 @@
 #
 # Makefile for USB Host Controller Drivers
 #
+EXTRA_CFLAGS           = -Iarch/arm/mach-tegra/
+
 GCOV_PROFILE := y
 
 ccflags-$(CONFIG_USB_DEBUG) := -DDEBUG

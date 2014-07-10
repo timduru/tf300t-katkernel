@@ -562,6 +562,37 @@ config MAX1749_VIBRATOR
 	---help---
 	Adds a timed output vibrator device node for MAX1749 vibrator motor
 
+config THERM_EST
+	bool "Thermal estimator driver"
+	default n
+	---help---
+	Thermal driver which estimates temperature based of other sensors.
+
+config AW8EC
+	bool "ASUS embedded controller interface for P1801 base pc"
+	default n
+
+config TEGRA_THROUGHPUT
+	bool "Device node to set throughput target"
+	depends on TEGRA_DC && TEGRA_DC_EXTENSIONS
+	default y
+	---help---
+	Dev node /dev/tegra-throughput used to set a throughput target.
+
+config BLUEDROID_PM
+        tristate "Bluedroid_pm driver support"
+        help
+          Bluetooth Bluedroid power management Driver.
+          This driver provides power control and dynamic active power saving
+          mechanism for bluetooth radio devices.
+
+          Say Y here to compile support for bluedroid_pm support into the kernel
+          or say M to compile it as module (bluedroid_pm).
+
+config KERNEL_RAMDUMP
+	bool "kernel ramdump driver"
+	default y
+
 source "drivers/misc/c2port/Kconfig"
 source "drivers/misc/eeprom/Kconfig"
 source "drivers/misc/cb710/Kconfig"
@@ -570,6 +601,8 @@ source "drivers/misc/ti-st/Kconfig"
 source "drivers/misc/lis3lv02d/Kconfig"
 source "drivers/misc/carma/Kconfig"
 source "drivers/misc/inv_mpu/Kconfig"
+source "drivers/misc/inv_mpu6050/Kconfig"
 source "drivers/misc/tegra-baseband/Kconfig"
+source "drivers/misc/tegra-cec/Kconfig"
 
 endif # MISC_DEVICES

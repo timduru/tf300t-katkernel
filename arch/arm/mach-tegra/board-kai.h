@@ -81,7 +81,6 @@ int kai_pins_state_init(void);
 int kai_emc_init(void);
 int kai_edp_init(void);
 void __init kai_tsensor_init(void);
-int __init touch_init_raydium(int irq_gpio, int reset_gpio, int platform);
 int __init touch_init_synaptics_kai(void);
 
 #define TOUCH_GPIO_IRQ_RAYDIUM_SPI      TEGRA_GPIO_PZ3
@@ -94,6 +93,8 @@ int __init touch_init_synaptics_kai(void);
 #define KAI_TS_ID2      TEGRA_GPIO_PC7
 #define KAI_TS_ID1_PG   TEGRA_PINGROUP_GMI_WAIT
 #define KAI_TS_ID2_PG   TEGRA_PINGROUP_GMI_WP_N
+
+#define KAI_TEMP_ALERT_GPIO	TEGRA_GPIO_PS3
 
 #define MPU_TYPE_MPU3050	1
 #define MPU_TYPE_MPU6050	2
@@ -116,5 +117,9 @@ int __init touch_init_synaptics_kai(void);
 #define MPU_COMPASS_ORIENTATION	{ 1, 0, 0, 0, 1, 0, 0, 0, 1 }
 
 #define TDIODE_OFFSET	(10000) /* in millicelsius */
+
+enum tegra_bb_type {
+	TEGRA_BB_TANGO = 1,
+};
 
 #endif

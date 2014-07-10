@@ -111,6 +111,23 @@ static struct usb_descriptor_header *hs_adb_descs[] = {
 	NULL,
 };
 
+static void adb_ready_callback(void);
+static void adb_closed_callback(void);
+
+static struct usb_string adb_string_defs[] = {
+	[0].s = "ASUS Android Composite ADB Interface",
+	{  },	 /*end of list*/
+};
+
+static struct usb_gadget_strings adb_string_table = {
+	.language = 0x0409, /*en-US*/
+	.strings = adb_string_defs,
+};
+
+static struct usb_gadget_strings *adb_strings[] = {
+	&adb_string_table,
+	NULL,
+};
 
 /* temporary variable used between adb_open() and adb_gadget_bind() */
 static struct adb_dev *_adb_dev;
@@ -430,13 +447,15 @@ static int adb_open(struct inode *ip, struct file *fp)
 	}
 
 	if (count < 5)
-		printk(KERN_INFO "adb_open(%s)\n", current->comm);
+		pr_info("adb_open(%s)\n", current->comm);
 
 
 	fp->private_data = _adb_dev;
 
 	/* clear the error latch */
 	_adb_dev->error = 0;
+
+	adb_ready_callback();
 
 	return 0;
 }
@@ -455,7 +474,10 @@ static int adb_release(struct inode *ip, struct file *fp)
 	}
 
 	if (count < 5)
-		printk(KERN_INFO "adb_release\n");
+		pr_info("adb_release\n");
+
+	adb_closed_callback();
+
 	adb_unlock(&_adb_dev->open_excl);
 	return 0;
 }
@@ -577,11 +599,22 @@ static void adb_function_disable(struct usb_function *f)
 static int adb_bind_config(struct usb_configuration *c)
 {
 	struct adb_dev *dev = _adb_dev;
+	int ret;
 
 	printk(KERN_INFO "adb_bind_config\n");
 
+	/* allocate a string ID for our interface */
+	if (adb_string_defs[0].id == 0) {
+		ret = usb_string_id(c->cdev);
+		if (ret < 0)
+			return ret;
+		adb_string_defs[0].id = ret;
+		adb_interface_desc.iInterface = ret;
+	}
+
 	dev->cdev = c->cdev;
 	dev->function.name = "adb";
+	dev->function.strings = adb_strings,
 	dev->function.descriptors = fs_adb_descs;
 	dev->function.hs_descriptors = hs_adb_descs;
 	dev->function.bind = adb_function_bind;

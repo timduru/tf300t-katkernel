@@ -2534,6 +2534,11 @@ static void sd_probe_async(void *data, async_cookie_t cookie)
 
 	sd_printk(KERN_NOTICE, sdkp, "Attached SCSI %sdisk\n",
 		  sdp->removable ? "removable " : "");
+
+	wake_unlock(&sdkp->disk->sd_wake_lock);
+	wake_lock_destroy(&sdkp->disk->sd_wake_lock);
+	sd_printk(KERN_NOTICE, sdkp, "%s:wake_unlock -\n",sdkp->disk->disk_name);
+
 	scsi_autopm_put_device(sdp);
 	put_device(&sdkp->dev);
 }
@@ -2608,6 +2613,10 @@ static int sd_probe(struct device *dev)
 	sdkp->index = index;
 	atomic_set(&sdkp->openers, 0);
 
+	wake_lock_init(&sdkp->disk->sd_wake_lock, WAKE_LOCK_SUSPEND, sdkp->disk->disk_name);
+	wake_lock_timeout(&sdkp->disk->sd_wake_lock, ((SD_MOD_TIMEOUT >= SD_TIMEOUT) ? SD_MOD_TIMEOUT : SD_TIMEOUT) + 5*HZ);
+	sdev_printk(KERN_WARNING, sdp, "%s:wake_lock +\n",sdkp->disk->disk_name);
+
 	if (!sdp->request_queue->rq_timeout) {
 		if (sdp->type != TYPE_MOD)
 			blk_queue_rq_timeout(sdp->request_queue, SD_TIMEOUT);
@@ -2636,6 +2645,9 @@ static int sd_probe(struct device *dev)
 	spin_lock(&sd_index_lock);
 	ida_remove(&sd_index_ida, index);
 	spin_unlock(&sd_index_lock);
+	wake_unlock(&sdkp->disk->sd_wake_lock);
+	wake_lock_destroy(&sdkp->disk->sd_wake_lock);
+	sdev_printk(KERN_WARNING, sdp, "%s:wake_unlock -\n",sdkp->disk->disk_name);
  out_put:
 	put_disk(gd);
  out_free:

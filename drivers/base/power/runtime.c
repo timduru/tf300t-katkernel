@@ -278,10 +278,12 @@ static int rpm_callback(int (*cb)(struct device *), struct device *dev)
  * another suspend has been started earlier, either return immediately or wait
  * for it to finish, depending on the RPM_NOWAIT and RPM_ASYNC flags.  Cancel a
  * pending idle notification.  If the RPM_ASYNC flag is set then queue a
- * suspend request; otherwise run the ->runtime_suspend() callback directly.
- * If a deferred resume was requested while the callback was running then carry
- * it out; otherwise send an idle notification for the device (if the suspend
- * failed) or for its parent (if the suspend succeeded).
+ * suspend request;
+ * otherwise run the ->runtime_suspend() callback directly. When
+ * ->runtime_suspend succeeded, if a deferred resume was requested while
+ * the callback was running then carry it out, otherwise send an idle
+ * notification for its parent (if the suspend succeeded and both
+ * ignore_children of parent->power and irq_safe of dev->power are not set).
  * If ->runtime_suspend failed with -EAGAIN or -EBUSY, and if the RPM_AUTO
  * flag is set and the next autosuspend-delay expiration time is in the
  * future, schedule another autosuspend attempt.
@@ -396,6 +398,8 @@ static int rpm_suspend(struct device *dev, int rpmflags)
 	if (retval) {
 		__update_runtime_status(dev, RPM_ACTIVE);
 		dev->power.deferred_resume = false;
+		wake_up_all(&dev->power.wait_queue);
+
 		if (retval == -EAGAIN || retval == -EBUSY) {
 			dev->power.runtime_error = 0;
 
@@ -406,20 +410,22 @@ static int rpm_suspend(struct device *dev, int rpmflags)
 			 * reschedule another autosuspend.
 			 */
 			if ((rpmflags & RPM_AUTO) &&
-			    pm_runtime_autosuspend_expiration(dev) != 0)
+			    pm_runtime_autosuspend_expiration(dev) != 0) {
+				wake_up_all(&dev->power.wait_queue);
 				goto repeat;
+			}
 		} else {
 			pm_runtime_cancel_pending(dev);
 		}
-	} else {
+		goto out;
+	}
  no_callback:
-		__update_runtime_status(dev, RPM_SUSPENDED);
-		pm_runtime_deactivate_timer(dev);
+	__update_runtime_status(dev, RPM_SUSPENDED);
+	pm_runtime_deactivate_timer(dev);
 
-		if (dev->parent) {
-			parent = dev->parent;
-			atomic_add_unless(&parent->power.child_count, -1, 0);
-		}
+	if (dev->parent) {
+		parent = dev->parent;
+		atomic_add_unless(&parent->power.child_count, -1, 0);
 	}
 	wake_up_all(&dev->power.wait_queue);
 

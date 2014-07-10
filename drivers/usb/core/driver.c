@@ -726,6 +726,9 @@ static int usb_uevent(struct device *dev, struct kobj_uevent_env *env)
 		return 0;
 	}
 
+	if(usb_dev->descriptor.idVendor == 0x1546 && usb_dev->descriptor.idProduct == 0x01a6)
+		msleep(500);
+
 	if (usb_dev->devnum < 0) {
 		/* driver is often null here; dev_dbg() would oops */
 		pr_debug("usb %s: already deleted?\n", dev_name(dev));
@@ -1648,8 +1651,14 @@ static int autosuspend_check(struct usb_device *udev)
 		}
 	}
 	if (w && !device_can_wakeup(&udev->dev)) {
-		dev_dbg(&udev->dev, "remote wakeup needed for autosuspend\n");
-		return -EOPNOTSUPP;
+		if (!(udev->descriptor.idVendor == 0x05c6 &&
+			(udev->descriptor.idProduct == 0x900b ||
+			udev->descriptor.idProduct == 0x900d))) {
+			dev_dbg(&udev->dev, "remote wakeup needed for autosuspend\n");
+			return -EOPNOTSUPP;
+		} else { //bypass checking for QCOM9200 modem
+			dev_dbg(&udev->dev, "this is QCOM9200, do not check for remote wakeup\n");
+		}
 	}
 	udev->do_remote_wakeup = w;
 	return 0;

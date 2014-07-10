@@ -1,0 +1,76 @@
+config BCM4329
+	tristate "Broadcom 4329 wireless cards support"
+	depends on MMC
+	---help---
+	  This module adds support for wireless adapters based on
+	  Broadcom 4329 chipset.
+
+	  This driver uses the kernel's wireless extensions subsystem.
+
+	  If you choose to build a module, it'll be called dhd. Say M if
+	  unsure.
+
+config BCM4329_DYNAMIC_DTIM_SKIP
+	bool "Use dynamic dtim skip"
+	depends on BCM4329
+	default n
+	---help---
+	  Use dynamic dtim skip for better power and perforrmance trade off.
+
+#config BCMDHD_FW_DIR
+#	depends on ( BCM4329 || BCM4330 || BCM4334 )
+#	string "Firmware directory"
+#	default "/system/vendor/firmware"
+#	---help---
+#	  Path to the firmware file.
+#
+#config BCMDHD_NVRAM_PATH
+#	depends on ( BCM4329 || BCM4330 || BCM4334 )
+#	string "NVRAM path"
+#	default "/system/etc/wifi/bcmdhd.cal"
+#	---help---
+#	  Path to the calibration file.
+#
+#config BCMDHD_WEXT
+#	bool "Enable WEXT support"
+#	depends on ( BCM4329 || BCM4330 || BCM4334 ) && CFG80211 = n
+#	select WIRELESS_EXT
+#	select WEXT_PRIV
+#	help
+#	  Enables WEXT support
+#
+#config BCMDHD_WIFI_CONTROL_FUNC
+#	bool "Use bcmdhd_wlan device"
+#	depends on ( BCM4329 || BCM4330 || BCM4334 )
+#	default n
+#	---help---
+#	  Use this option to get various parameters from architecture specific
+#	  bcmdhd_wlan platform device. Say n if unsure.
+#
+#config BCMDHD_HW_OOB
+#	bool "Use out of band interrupt"
+#	depends on ( BCM4329 || BCM4330 || BCM4334 )
+#	default n
+#	---help---
+#	  Use out of band interrupt for card interrupt and wake on wireless.
+#
+#config DHD_USE_STATIC_BUF
+#	bool "Enable memory preallocation"
+#	depends on BCM4330
+#	default n
+#	---help---
+#	  Use memory preallocated in platform
+#
+#config DHD_USE_SCHED_SCAN
+#	bool "Use CFG80211 sched scan"
+#	depends on BCM4330 && CFG80211
+#	default n
+#	---help---
+#	  Use CFG80211 sched scan
+#
+#config DHD_ENABLE_P2P
+#	bool "Enable Wifi Direct"
+#	depends on BCM4330 && CFG80211
+#	default n
+#	---help---
+#	  Use Enable Wifi Direct

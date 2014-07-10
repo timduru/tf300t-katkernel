@@ -10,6 +10,7 @@
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation.
  */
+#include <asm/mach-types.h>
 
 #include <linux/module.h>
 
@@ -31,6 +32,8 @@
 #include <linux/of_platform.h>
 #include <linux/of_gpio.h>
 #include <linux/spinlock.h>
+#include <../gpio-names.h>
+#include <mach/board-cardhu-misc.h>
 
 struct gpio_button_data {
 	const struct gpio_keys_button *button;
@@ -326,17 +329,33 @@ static struct attribute_group gpio_keys_attr_group = {
 	.attrs = gpio_keys_attrs,
 };
 
+static char *key_descriptions[] = {
+	"KEY_VOLUMEDOWN",
+	"KEY_VOLUMEUP",
+	"KEY_POWER",
+};
+
 static void gpio_keys_gpio_report_event(struct gpio_button_data *bdata)
 {
 	const struct gpio_keys_button *button = bdata->button;
 	struct input_dev *input = bdata->input;
 	unsigned int type = button->type ?: EV_KEY;
 	int state = (gpio_get_value_cansleep(button->gpio) ? 1 : 0) ^ button->active_low;
+	static int prev_state = 0;
 
 	if (type == EV_ABS) {
 		if (state)
 			input_event(input, type, button->code, button->value);
 	} else {
+		if (machine_is_cardhu() && button->code == KEY_POWER) {
+			if (!prev_state && (prev_state == state)) {
+				pr_info("gpio_keys: Make up pressed"
+						" KEY_POWER\n");
+				input_event(input, type, button->code, 1);
+				input_sync(input);
+			}
+			prev_state = state;
+		}
 		input_event(input, type, button->code, !!state);
 	}
 	input_sync(input);
@@ -346,7 +365,26 @@ static void gpio_keys_gpio_work_func(struct work_struct *work)
 {
 	struct gpio_button_data *bdata =
 		container_of(work, struct gpio_button_data, work);
+	u32 project_info = tegra3_get_project_id();
+	
+	/* Valid keys were logged for debugging in machine grouper */
+	const struct gpio_keys_button *button = bdata->button;
+	int state = (gpio_get_value_cansleep(button->gpio) ? 1 : 0)
+			^ button->active_low;
+	if(project_info == TEGRA3_PROJECT_P1801){
+		if ((gpio_get_value(TEGRA_GPIO_PH3) == 0)&(gpio_get_value(TEGRA_GPIO_PI6) == 0)
+			&(gpio_get_value(TEGRA_GPIO_PH4) == 0)&(button->code == KEY_MODE))
+		return ;
+	}
 
+	if (machine_is_cardhu()){
+		if((button->code <= KEY_POWER) & (button->code >= KEY_VOLUMEDOWN))
+			pr_info("gpio_keys: %s %s\n", state ? "Pressed" : "Released",
+			key_descriptions[button->code - KEY_VOLUMEDOWN]);
+		else if((button->code == KEY_MODE))
+			pr_info("gpio_keys: %s KEY_MODE\n", state ? "Pressed" : "Released");
+	}
+	
 	gpio_keys_gpio_report_event(bdata);
 }
 
@@ -821,8 +859,6 @@ static int gpio_keys_resume(struct device *dev)
 			}
 		}
 
-		if (gpio_is_valid(bdata->button->gpio))
-			gpio_keys_gpio_report_event(bdata);
 	}
 	input_sync(ddata->input);
 

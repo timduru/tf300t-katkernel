@@ -14,10 +14,13 @@
 #include <linux/err.h>
 #include <linux/fb.h>
 #include <linux/slab.h>
+#include <mach/board-cardhu-misc.h>
 
 #ifdef CONFIG_PMAC_BACKLIGHT
 #include <asm/backlight.h>
 #endif
+
+int brightness_flag = 0;
 
 static const char *const backlight_types[] = {
 	[BACKLIGHT_RAW] = "raw",
@@ -135,15 +138,63 @@ static ssize_t backlight_store_power(struct device *dev,
 	return rc;
 }
 
+static inline int backlight_get_brightness(struct backlight_device *bd)
+{
+	int brightness = 0;
+	mutex_lock(&bd->update_lock);
+	if (bd->ops && bd->ops->get_brightness)
+		brightness = bd->ops->get_brightness(bd);
+	mutex_unlock(&bd->update_lock);
+	return brightness;
+}
+
 static ssize_t backlight_show_brightness(struct device *dev,
 		struct device_attribute *attr, char *buf)
 {
 	struct backlight_device *bd = to_backlight_device(dev);
 
-	return sprintf(buf, "%d\n", bd->props.brightness);
+        if (tegra3_get_project_id()==TEGRA3_PROJECT_P1801)
+                return sprintf(buf, "%d\n", backlight_get_brightness(bd));
+        else
+                return sprintf(buf, "%d\n", bd->props.brightness);
 }
 
+//need to store the brightness in scalar
 static ssize_t backlight_store_brightness(struct device *dev,
+		struct device_attribute *attr, const char *buf, size_t count)
+{
+	int rc;
+	struct backlight_device *bd = to_backlight_device(dev);
+	unsigned long brightness;
+
+	rc = strict_strtoul(buf, 0, &brightness);
+	if (rc)
+		return rc;
+
+	rc = -ENXIO;
+
+	mutex_lock(&bd->ops_lock);
+	if (bd->ops) {
+		if (brightness > bd->props.max_brightness)
+			rc = -EINVAL;
+		else {
+			pr_debug("backlight: set brightness to %lu\n",
+				 brightness);
+			bd->props.brightness = brightness;
+			brightness_flag = 1;
+			backlight_update_status(bd);
+			rc = count;
+		}
+	}
+	mutex_unlock(&bd->ops_lock);
+
+	backlight_generate_event(bd, BACKLIGHT_UPDATE_SYSFS);
+
+	return rc;
+}
+
+//for apps that change backlight temporarily, do not store the brightness in scalar
+static ssize_t backlight_store_brightness_overwrite(struct device *dev,
 		struct device_attribute *attr, const char *buf, size_t count)
 {
 	int rc;
@@ -245,6 +296,7 @@ static struct device_attribute bl_device_attributes[] = {
 	__ATTR(bl_power, 0644, backlight_show_power, backlight_store_power),
 	__ATTR(brightness, 0644, backlight_show_brightness,
 		     backlight_store_brightness),
+	__ATTR(brightness_overwrite, 0644, backlight_show_brightness, backlight_store_brightness_overwrite),
 	__ATTR(actual_brightness, 0444, backlight_show_actual_brightness,
 		     NULL),
 	__ATTR(max_brightness, 0444, backlight_show_max_brightness, NULL),

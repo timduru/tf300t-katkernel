@@ -32,6 +32,25 @@ enum regulator_status {
 	REGULATOR_STATUS_STANDBY,
 };
 
+/*
+ * struct regulator
+ *
+ * One for each consumer device.
+ */
+struct regulator {
+	struct device *dev;
+	struct list_head list;
+	int uA_load;
+	int min_uV;
+	int max_uV;
+	char *supply_name;
+	struct device_attribute dev_attr;
+	struct regulator_dev *rdev;
+#ifdef CONFIG_DEBUG_FS
+	struct dentry *debugfs;
+#endif
+};
+
 /**
  * struct regulator_ops - regulator operations.
  *
@@ -153,6 +172,7 @@ enum regulator_type {
  * this type.
  *
  * @name: Identifying name for the regulator.
+ * @supply_name: Identifying the regulator supply
  * @id: Numerical identifier for the regulator.
  * @n_voltages: Number of selectors available for ops.list_voltage().
  * @ops: Regulator operations table.
@@ -162,6 +182,7 @@ enum regulator_type {
  */
 struct regulator_desc {
 	const char *name;
+	const char *supply_name;
 	int id;
 	unsigned n_voltages;
 	struct regulator_ops *ops;

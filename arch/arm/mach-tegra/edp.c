@@ -23,7 +23,7 @@
 #include <linux/seq_file.h>
 #include <linux/slab.h>
 #include <mach/edp.h>
-
+#include <mach/board-cardhu-misc.h>
 #include "fuse.h"
 
 static const struct tegra_edp_limits *edp_limits;
@@ -327,6 +327,12 @@ void __init tegra_init_cpu_edp_limits(unsigned int regulator_mA)
 	struct tegra_edp_limits *e;
 	struct tegra_edp_entry *t = (struct tegra_edp_entry *)tegra_edp_map;
 	int tsize = sizeof(tegra_edp_map)/sizeof(struct tegra_edp_entry);
+	unsigned int project_id = tegra3_get_project_id();
+
+	if(TEGRA3_PROJECT_P1801 == project_id)
+	{
+		cpu_speedo_id = 5;
+	}
 
 	if (!regulator_mA) {
 		edp_limits = edp_default_limits;
@@ -384,6 +390,12 @@ void __init tegra_init_system_edp_limits(unsigned int power_limit_mW)
 		(struct system_edp_entry *)tegra_system_edp_map;
 	int tsize = sizeof(tegra_system_edp_map) /
 		sizeof(struct system_edp_entry);
+	unsigned int project_id = tegra3_get_project_id();
+
+	if(TEGRA3_PROJECT_P1801 == project_id)
+	{
+		cpu_speedo_id = 5;
+	}
 
 	if (!power_limit_mW) {
 		e = NULL;

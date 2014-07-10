@@ -4,6 +4,8 @@
  * Copyright (C) 2010 Google, Inc.
  * Author: Erik Gilling <konkers@android.com>
  *
+ * Copyright (c) 2010-2012, NVIDIA CORPORATION, All rights reserved.
+ *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
  * may be copied, distributed, and modified under those terms.
@@ -21,6 +23,7 @@
 
 #include "dc_reg.h"
 #include "dc_priv.h"
+#include <mach/board-cardhu-misc.h>
 
 
 static const u32 tegra_dc_rgb_enable_partial_pintable[] = {
@@ -90,6 +93,17 @@ static const u32 tegra_dc_rgb_disable_pintable[] = {
 	DC_COM_PIN_OUTPUT_SELECT6,	0x00000000,
 };
 
+static struct tegra_dc_out_pin cardhu_dc_out_pins[] = {
+       {
+               .name   = TEGRA_DC_OUT_PIN_H_SYNC,
+               .pol    = TEGRA_DC_OUT_PIN_POL_LOW,
+       },
+       {
+               .name   = TEGRA_DC_OUT_PIN_V_SYNC,
+               .pol    = TEGRA_DC_OUT_PIN_POL_LOW,
+       },
+};
+
 void tegra_dc_rgb_enable(struct tegra_dc *dc)
 {
 	int i;
@@ -101,7 +115,13 @@ void tegra_dc_rgb_enable(struct tegra_dc *dc)
 
 	tegra_dc_writel(dc, DISP_CTRL_MODE_C_DISPLAY, DC_CMD_DISPLAY_COMMAND);
 
+	if (tegra3_get_project_id()==0x4){
+		//printk("Check tegra_dc_rgb_enable \n");
+		dc->out->out_pins = cardhu_dc_out_pins;
+		dc->out->n_out_pins = ARRAY_SIZE(cardhu_dc_out_pins);
+	}
 	if (dc->out->out_pins) {
+		//printk("Check set polarity \n");
 		tegra_dc_set_out_pin_polars(dc, dc->out->out_pins,
 			dc->out->n_out_pins);
 		tegra_dc_write_table(dc, tegra_dc_rgb_enable_partial_pintable);
@@ -144,9 +164,13 @@ void tegra_dc_rgb_enable(struct tegra_dc *dc)
 	}
 
 	tegra_dc_write_table(dc, out_sel_pintable);
+
+	/* Inform DC register updated */
+	tegra_dc_writel(dc, GENERAL_UPDATE, DC_CMD_STATE_CONTROL);
+	tegra_dc_writel(dc, GENERAL_ACT_REQ, DC_CMD_STATE_CONTROL);
 }
 
-void tegra_dc_rgb_disable(struct tegra_dc *dc)
+static void tegra_dc_rgb_disable(struct tegra_dc *dc)
 {
 	tegra_dc_writel(dc, 0x00000000, DC_CMD_DISPLAY_POWER_CONTROL);
 

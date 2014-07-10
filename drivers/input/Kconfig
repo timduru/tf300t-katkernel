@@ -170,6 +170,18 @@ config INPUT_KEYRESET
 	  To compile this driver as a module, choose M here: the
 	  module will be called keyreset.
 
+config INPUT_ASUSEC
+	bool "ASUS embedded controller interface"
+	depends on I2C
+
+config ASUSPEC
+	bool "ASUS embedded controller interface"
+	depends on INPUT_ASUSEC
+
+config ASUSDEC
+	bool "ASUS embedded controller interface"
+	depends on INPUT_ASUSEC
+
 comment "Input Device Drivers"
 
 source "drivers/input/keyboard/Kconfig"
@@ -195,4 +207,3 @@ source "drivers/input/gameport/Kconfig"
 endmenu
 
 endmenu
-

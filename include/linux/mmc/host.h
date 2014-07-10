@@ -17,6 +17,29 @@
 #include <linux/mmc/core.h>
 #include <linux/mmc/pm.h>
 
+struct tegra_sdhci_host {
+	bool    clk_enabled;
+	struct regulator *vdd_io_reg;
+	struct regulator *vdd_slot_reg;
+	/* Pointer to the chip specific HW ops */
+	struct tegra_sdhci_hw_ops *hw_ops;
+	/* Host controller instance */
+	unsigned int instance;
+	/* vddio_min */
+	unsigned int vddio_min_uv;
+	/* vddio_max */
+	unsigned int vddio_max_uv;
+	/* max clk supported by the platform */
+	unsigned int max_clk_limit;
+	/* max ddr clk supported by the platform */
+	unsigned int ddr_clk_limit;
+	struct tegra_io_dpd *dpd;
+	bool card_present;
+	bool is_rail_enabled;
+	struct clk *emc_clk;
+	unsigned int emc_max_clk;
+};
+
 struct mmc_ios {
 	unsigned int	clock;			/* clock rate */
 	unsigned short	vdd;
@@ -232,6 +255,13 @@ struct mmc_host {
 #define MMC_CAP_CMD23		(1 << 30)	/* CMD23 supported. */
 #define MMC_CAP_BKOPS		(1 << 31)	/* Host supports BKOPS */
 
+	unsigned int		caps2;			/* More host capabilities */
+#define MMC_CAP2_BOOTPART_NOACC	(1 << 0)	/* Boot partition no access */
+#define MMC_CAP2_CACHE_CTRL		(1 << 1)	/* Allow cache control */
+#define MMC_CAP2_POWEROFF_NOTIFY	(1 << 2)	/* Notify poweroff supported */
+#define MMC_CAP2_NO_MULTI_READ	(1 << 3)	/* Multiblock reads don't work */
+#define MMC_CAP2_NO_SLEEP_CMD		(1 << 4)	/* Don't allow sleep command */
+
 	mmc_pm_flag_t		pm_caps;	/* supported pm features */
 
 #ifdef CONFIG_MMC_CLKGATE
@@ -401,6 +431,9 @@ int mmc_host_enable(struct mmc_host *host);
 int mmc_host_disable(struct mmc_host *host);
 int mmc_host_lazy_disable(struct mmc_host *host);
 int mmc_pm_notify(struct notifier_block *notify_block, unsigned long, void *);
+int mmc_speed_class_control(struct mmc_host *host,
+	unsigned int speed_class_ctrl_arg);
+
 
 static inline void mmc_set_disable_delay(struct mmc_host *host,
 					 unsigned int disable_delay)

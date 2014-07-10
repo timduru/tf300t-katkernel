@@ -22,11 +22,14 @@
 #define __MACH_TEGRA_CPU_TEGRA_H
 
 unsigned int tegra_getspeed(unsigned int cpu);
+int tegra_update_cpu_speed(unsigned long rate);
 int tegra_cpu_set_speed_cap(unsigned int *speed_cap);
 unsigned int tegra_count_slow_cpus(unsigned long speed_limit);
 unsigned int tegra_get_slowest_cpu_n(void);
 unsigned long tegra_cpu_lowest_speed(void);
 unsigned long tegra_cpu_highest_speed(void);
+int Asus_camera_enable_set_emc_rate(unsigned long rate);
+int Asus_camera_disable_set_emc_rate(void);
 
 #ifdef CONFIG_TEGRA_THERMAL_THROTTLE
 int tegra_throttle_init(struct mutex *cpu_lock);
