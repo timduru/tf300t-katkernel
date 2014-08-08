@@ -391,12 +391,12 @@ static struct kernel_param_ops cap_ops = {
 };
 module_param_cb(cpu_user_cap, &cap_ops, &cpu_user_cap, 0644);
 
-/*static unsigned int user_cap_speed(unsigned int requested_speed)
+static unsigned int user_cap_speed(unsigned int requested_speed)
 {
 	if ((cpu_user_cap) && (requested_speed > cpu_user_cap))
 		return cpu_user_cap;
 	return requested_speed;
-}*/
+}
 
 #ifdef CONFIG_TEGRA_THERMAL_THROTTLE
 
@@ -886,8 +886,8 @@ unsigned long tegra_cpu_highest_speed(void) {
 	int i;
 
 	for_each_online_cpu(i) {
-		//if (force_policy_max)
-		//	policy_max = min(policy_max, policy_max_speed[i]);
+		if (force_policy_max)
+			policy_max = min(policy_max, policy_max_speed[i]);
 		rate = max(rate, target_cpu_speed[i]);
 	}
 	rate = min(rate, policy_max);
@@ -905,7 +905,7 @@ int tegra_cpu_set_speed_cap(unsigned int *speed_cap)
        new_speed = ASUS_governor_speed(new_speed);
 	new_speed = tegra_throttle_governor_speed(new_speed);
 	new_speed = edp_governor_speed(new_speed);
-	//new_speed = user_cap_speed(new_speed);
+	new_speed = user_cap_speed(new_speed);
 	if (speed_cap)
 		*speed_cap = new_speed;
 
