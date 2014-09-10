@@ -354,7 +354,7 @@ static int rcu_implicit_offline_qs(struct rcu_data *rdp)
 static void rcu_idle_enter_common(struct rcu_dynticks *rdtp, long long oldval)
 {
 	trace_rcu_dyntick("Start", oldval, 0);
-	if (!is_idle_task(current)) {
+	if (current->pid != 0) {
 		struct task_struct *idle = idle_task(smp_processor_id());
 
 		trace_rcu_dyntick("Error on entry: not idle task", oldval, 0);
@@ -462,7 +462,7 @@ static void rcu_idle_exit_common(struct rcu_dynticks *rdtp, long long oldval)
 	smp_mb__after_atomic_inc();  /* See above. */
 	WARN_ON_ONCE(!(atomic_read(&rdtp->dynticks) & 0x1));
 	trace_rcu_dyntick("End", oldval, rdtp->dynticks_nesting);
-	if (!is_idle_task(current)) {
+	if (current->pid != 0) {
 		struct task_struct *idle = idle_task(smp_processor_id());
 
 		trace_rcu_dyntick("Error on exit: not idle task",
@@ -1410,7 +1410,7 @@ static void rcu_do_batch(struct rcu_state *rsp, struct rcu_data *rdp)
 		/* Stop only if limit reached and CPU has something to do. */
 		if (++count >= bl &&
 		    (need_resched() ||
-		     (!is_idle_task(current) && !rcu_is_callbacks_kthread())))
+		     (current->pid != 0 && !rcu_is_callbacks_kthread())))
 			break;
 	}
 
