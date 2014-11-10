@@ -141,18 +141,14 @@ static void to_state_running_locked(struct nvhost_device *dev)
 		if (dev->dev.parent)
 			nvhost_module_busy(to_nvhost_device(dev->dev.parent));
 
-		for (i = 0; i < dev->num_clks; i++)
-			clk_enable(dev->clk[i]);
-
-/* disabled for the GPU custom clocks interface */
-#if 0
+		for (i = 0; i < dev->num_clks; i++) {
+			int err = clk_enable(dev->clk[i]);
 			if (err) {
 				dev_err(&dev->dev, "Cannot turn on clock %s",
 					dev->clocks[i].name);
 				return;
 			}
 		}
-#endif
 
 		/* Invoke callback after enabling clock. This is used for
 		 * re-enabling host1x interrupts. */
