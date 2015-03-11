@@ -67,3 +67,5 @@ obj-$(CONFIG_BLUEDROID_PM)      += bluedroid_pm.o
 obj-$(CONFIG_KERNEL_RAMDUMP)    += ramdump.o
 obj-$(CONFIG_AW8EC)             += aw8ec.o
 CFLAGS_tegra-cryptodev.o	 = -Werror
+obj-$(CONFIG_UID_CPUTIME) += uid_cputime.o
+
