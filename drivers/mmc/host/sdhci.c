@@ -1722,7 +1722,7 @@ static int sdhci_execute_tuning(struct mmc_host *mmc)
 		enable_irq(host->irq);
 
 		/* Wait for Buffer Read Ready interrupt */
-		wait_event_interruptible_timeout(host->buf_ready_int,
+		wait_event_timeout(host->buf_ready_int,
 					(host->tuning_done == 1),
 					msecs_to_jiffies(50));
 		disable_irq(host->irq);
