@@ -209,7 +209,7 @@ static struct inode *ocfs2_get_init_inode(struct inode *dir, int mode)
 
 static int ocfs2_mknod(struct inode *dir,
 		       struct dentry *dentry,
-		       int mode,
+		       umode_t mode,
 		       dev_t dev)
 {
 	int status = 0;
@@ -604,7 +604,7 @@ static int ocfs2_mknod_locked(struct ocfs2_super *osb,
 
 static int ocfs2_mkdir(struct inode *dir,
 		       struct dentry *dentry,
-		       int mode)
+		       umode_t mode)
 {
 	int ret;
 
@@ -619,7 +619,7 @@ static int ocfs2_mkdir(struct inode *dir,
 
 static int ocfs2_create(struct inode *dir,
 			struct dentry *dentry,
-			int mode,
+			umode_t mode,
 			struct nameidata *nd)
 {
 	int ret;
