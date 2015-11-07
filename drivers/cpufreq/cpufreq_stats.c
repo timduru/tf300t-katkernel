@@ -91,7 +91,7 @@ static int cpufreq_stats_update(unsigned int cpu)
 	}
 
 	all_stat = per_cpu(all_cpufreq_stats, cpu);
-	if (stat->time_in_state && stat->last_index >= 0)
+	if (stat->time_in_state && stat->last_index >= 0) {
 		stat->time_in_state[stat->last_index] =
 			cputime64_add(stat->time_in_state[stat->last_index],
 				      cputime_sub(cur_time, stat->last_time));
@@ -377,7 +377,7 @@ static void cpufreq_powerstats_free(void)
 static int cpufreq_stats_create_table(struct cpufreq_policy *policy,
 		struct cpufreq_frequency_table *table, int count)
 {
-	unsigned int i, j, k, l, count = 0, ret = 0;
+	unsigned int i, j, k, l, ret = 0;
 	struct cpufreq_stats *stat;
 	struct cpufreq_policy *data;
 	unsigned int alloc_size;
@@ -495,13 +495,6 @@ static void cpufreq_powerstats_create(unsigned int cpu,
 	}
 	per_cpu(cpufreq_power_stats, cpu) = powerstats;
 	spin_unlock(&cpufreq_stats_lock);
-}
-
-static int compare_for_sort(const void *lhs_ptr, const void *rhs_ptr)
-{
-	unsigned int lhs = *(const unsigned int *)(lhs_ptr);
-	unsigned int rhs = *(const unsigned int *)(rhs_ptr);
-	return (lhs - rhs);
 }
 
 static bool check_all_freq_table(unsigned int freq)
@@ -757,9 +750,9 @@ static int __init cpufreq_stats_init(void)
 	}
 
 	create_all_freq_table();
-	for_each_possible_cpu(cpu) {
-		cpufreq_allstats_create(cpu);
-	}
+//	for_each_possible_cpu(cpu) {
+//		cpufreq_allstats_create(cpu);
+//	}
 	if (all_freq_table && all_freq_table->freq_table)
 		sort(all_freq_table->freq_table, all_freq_table->table_size,
 				sizeof(unsigned int), &compare_for_sort, NULL);
