@@ -121,7 +121,7 @@ typedef irqreturn_t(*FN_ISR) (int irq, void *dev_id, struct pt_regs *ptregs);
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 17)
 #ifdef	CONFIG_NET_RADIO
-#define	CONFIG_BCMDHD_WEXT
+#define	CONFIG_WIRELESS_EXT
 #endif
 #endif	
 
@@ -477,7 +477,7 @@ typedef struct {
 
 
 #ifdef DHD_DEBUG
-#define DBG_THR(x) printf x
+#define DBG_THR(x) printk x
 #else
 #define DBG_THR(x)
 #endif

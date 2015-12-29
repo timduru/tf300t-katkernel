@@ -65,16 +65,16 @@ struct wl_ibss;
 #define	WL_ERR(args)								\
 do {										\
 	if (wl_dbg_level & WL_DBG_ERR) {					\
-			printf(KERN_ERR "CFG80211-ERROR) %s : ", __func__);	\
-			printf args;						\
+			printk(KERN_ERR "CFG80211-ERROR) %s : ", __func__);	\
+			printk args;						\
 		} 								\
 } while (0)
 #else /* defined(DHD_DEBUG) */
 #define	WL_ERR(args)								\
 do {										\
 	if ((wl_dbg_level & WL_DBG_ERR) && net_ratelimit())  {			\
-			printf(KERN_INFO "CFG80211-ERROR) %s : ", __func__);	\
-			printf args;						\
+			printk(KERN_INFO "CFG80211-ERROR) %s : ", __func__);	\
+			printk args;						\
 		} 								\
 } while (0)
 #endif /* defined(DHD_DEBUG) */
@@ -85,8 +85,8 @@ do {										\
 #define	WL_INFO(args)									\
 do {										\
 	if (wl_dbg_level & WL_DBG_INFO) {				\
-			printf(KERN_ERR "CFG80211-INFO) %s : ", __func__);	\
-			printf args;						\
+			printk(KERN_ERR "CFG80211-INFO) %s : ", __func__);	\
+			printk args;						\
 		}								\
 } while (0)
 #ifdef WL_SCAN
@@ -95,8 +95,8 @@ do {										\
 #define	WL_SCAN(args)								\
 do {									\
 	if (wl_dbg_level & WL_DBG_SCAN) {			\
-		printf(KERN_ERR "CFG80211-SCAN) %s :", __func__);	\
-		printf args;							\
+		printk(KERN_ERR "CFG80211-SCAN) %s :", __func__);	\
+		printk args;							\
 	}									\
 } while (0)
 #ifdef WL_TRACE
@@ -105,22 +105,22 @@ do {									\
 #define	WL_TRACE(args)								\
 do {									\
 	if (wl_dbg_level & WL_DBG_TRACE) {			\
-		printf(KERN_ERR "CFG80211-TRACE) %s :", __func__);	\
-		printf args;							\
+		printk(KERN_ERR "CFG80211-TRACE) %s :", __func__);	\
+		printk args;							\
 	}									\
 } while (0)
 #if (WL_DBG_LEVEL > 0)
 #define	WL_DBG(args)								\
 do {									\
 	if (wl_dbg_level & WL_DBG_DBG) {			\
-		printf(KERN_ERR "CFG80211-DEBUG) %s :", __func__);	\
-		printf args;							\
+		printk(KERN_ERR "CFG80211-DEBUG) %s :", __func__);	\
+		printk args;							\
 	}									\
 } while (0)
 #else				/* !(WL_DBG_LEVEL > 0) */
 #define	WL_DBG(args)
 #endif				/* (WL_DBG_LEVEL > 0) */
-
+#define	WL_PNO(args)
 
 #define WL_SCAN_RETRY_MAX	3
 #define WL_NUM_PMKIDS_MAX	MAXPMKID
@@ -549,6 +549,29 @@ wl_get_status_all(struct wl_priv *wl, s32 status)
 	return cnt? true: false;
 }
 
+
+static inline void
+wl_set_status_all(struct wl_priv *wl, s32 status, u32 op)
+{
+	struct net_info *_net_info, *next;
+
+	list_for_each_entry_safe(_net_info, next, &wl->net_list, list) {
+		switch (op) {
+			case 1:
+				return; /* set all status is not allowed */
+			case 2:
+				clear_bit(status, &_net_info->sme_state);
+				break;
+			case 4:
+				return; /* change all status is not allowed */
+			default:
+				return; /* unknown operation */
+		}
+	}
+
+}
+
+
 static inline void
 wl_set_status_by_netdev(struct wl_priv *wl, s32 status,
 	struct net_device *ndev, u32 op)
@@ -639,6 +662,8 @@ wl_get_profile_by_netdev(struct wl_priv *wl, struct net_device *ndev)
 	(wl_set_status_by_netdev(wl, WL_STATUS_ ## stat, ndev, 1))
 #define wl_clr_drv_status(wl, stat, ndev)  \
 	(wl_set_status_by_netdev(wl, WL_STATUS_ ## stat, ndev, 2))
+#define wl_clr_drv_status_all(wl, stat)  \
+	(wl_set_status_all(wl, WL_STATUS_ ## stat, 2))
 #define wl_chg_drv_status(wl, stat, ndev)  \
 	(wl_set_status_by_netdev(wl, WL_STATUS_ ## stat, ndev, 4))
 

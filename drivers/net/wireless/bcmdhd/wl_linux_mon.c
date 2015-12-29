@@ -52,7 +52,7 @@ extern int dhd_start_xmit(struct sk_buff *skb, struct net_device *net);
 /**
  * Local declarations and defintions (not exposed)
  */
-#define MON_PRINT(format, ...) printf("DHD-MON: %s " format, __func__, ##__VA_ARGS__)
+#define MON_PRINT(format, ...) printk("DHD-MON: %s " format, __func__, ##__VA_ARGS__)
 #define MON_TRACE MON_PRINT
 
 typedef struct monitor_interface {

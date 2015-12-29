@@ -7020,7 +7020,7 @@ wl_iw_set_ap_security(struct net_device *dev, struct ap_profile *ap)
 				        (uint)output[i*4+3]);
 				ptr += 8;
 			}
-			printf("%s: passphase = %s\n", __FUNCTION__, key_str_buf);
+			printk("%s: passphase = %s\n", __FUNCTION__, key_str_buf);
 
 			psk.key_len = htod16((ushort)WSEC_MAX_PSK_LEN);
 			memcpy(psk.key, key_str_buf, psk.key_len);
