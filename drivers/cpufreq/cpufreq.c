@@ -710,22 +710,17 @@ static ssize_t store_gpu_oc(struct cpufreq_policy *policy, const char *buf, size
 
 	for (i--; i >= 5; i--) 
 	{
-		if (gpu_freq < 600) 
-		{
-			new_volt = 1250;
-			vde->dvfs->millivolts[i] = new_volt;
-		}                        
+		if (gpu_freq >= 700) 		new_volt = 1500;
+		else if (gpu_freq >= 680) 	new_volt = 1400;
+		else if (gpu_freq >= 650) 	new_volt = 1350;
+		else if (gpu_freq >= 600) 	new_volt = 1300;
+		else if (gpu_freq >= 560) 	new_volt = 1250;
+		else if (gpu_freq >= 520) 	new_volt = 1200;
+		else if (gpu_freq >= 480) 	new_volt = 1150;
+		else 				new_volt = 1100;
 
-		if (gpu_freq >= 600 && gpu_freq < 700) 
-		{
-			new_volt = 1400;
-			vde->dvfs->millivolts[i] = new_volt;
-		}
+		vde->dvfs->millivolts[i] = new_volt;
 
-		if (gpu_freq >= 700) {
-			new_volt = 1550;
-			vde->dvfs->millivolts[i] = new_volt;
-		}
 
 		vde->dvfs->freqs[i] = new_gpu_freq;
 		mpe->dvfs->freqs[i] = new_gpu_freq;
