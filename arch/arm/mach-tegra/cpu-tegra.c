@@ -48,22 +48,16 @@
 
 #include <linux/seq_file.h>
 
-/*
 #define SYSTEM_NORMAL_MODE	(0)
 #define SYSTEM_BALANCE_MODE	(1)
 #define SYSTEM_PWRSAVE_MODE	(2)
 #define SYSTEM_MODE_END 		(SYSTEM_PWRSAVE_MODE + 1)
 #define SYSTEM_PWRSAVE_MODE_MAX_FREQ	(1000000)
-#ifdef CONFIG_TF300T_OC
-unsigned int power_mode_table[SYSTEM_MODE_END] = {1500000,1300000,1000000, 1500000};
-#else
-unsigned int power_mode_table[SYSTEM_MODE_END] = {1000000,1200000,1400000};
-#endif
-*/
 
 #define CAMERA_ENABLE_EMC_MINMIAM_RATE (667000000)
 /* tegra throttling and edp governors require frequencies in the table
    to be in ascending order */
+unsigned int power_mode_table[SYSTEM_MODE_END] = {1000000,1200000,1400000};
 static struct cpufreq_frequency_table *freq_table;
 
 static struct clk *cpu_clk;
@@ -369,11 +363,9 @@ static void edp_update_limit(void)
 #else
 	unsigned int i;
 	for (i = 0; freq_table[i].frequency != CPUFREQ_TABLE_END; i++) {
-#ifndef CONFIG_TF300T_OC
 		if (freq_table[i].frequency > limit) {
 			break;
 		}
-#endif
 	}
 	BUG_ON(i == 0);	/* min freq above the limit or table empty */
 	edp_limit = freq_table[i-1].frequency;

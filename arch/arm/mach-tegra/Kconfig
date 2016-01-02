@@ -16,14 +16,6 @@ if ARCH_TEGRA
 
 comment "NVIDIA Tegra options"
 
-config TF300T_OC
-	bool "Enable higher CPU, GPU clock rates on TF300T"
-	depends on TEGRA_EDP_LIMITS
-	default n
-	help
-	  Tegra T30 part reported as Tegra T33 allowing CPU clock
-	  up to 1.7Ghz and GPU clock up to 520Mhz
-
 config VOLTAGE_CONTROL
 	bool "Enable user voltage control on Tegra CPU"
 	depends on TEGRA_SILICON_PLATFORM
@@ -537,7 +529,6 @@ config TEGRA_DYNAMIC_PWRDET
 config TEGRA_EDP_EXACT_FREQ
 	bool "Use maximum possible cpu frequency when EDP capping"
 	depends on TEGRA_EDP_LIMITS
-	depends on !TF300T_OC
 	default y
 	help
 	  When enabled the cpu will run at the exact frequency
