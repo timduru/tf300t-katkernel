@@ -30,6 +30,14 @@
 #define PLL_POST_LOCK_DELAY 50	/* Safety delay after lock is detected */
 #endif
 
+#define EDP_MAX 1800000
+#define OC_MAX 1800000000
+#define OC_DEFAULT 1700000
+#define OC_TRANSITION_LATENCY 50 // 300 ori
+#define OC_TEMP_MAX 66 
+
+
+
 #define DIV_BUS			(1 << 0)
 #define DIV_U71			(1 << 1)
 #define DIV_U71_FIXED		(1 << 2)

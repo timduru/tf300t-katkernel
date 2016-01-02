@@ -48,16 +48,18 @@
 
 #include <linux/seq_file.h>
 
+/*
 #define SYSTEM_NORMAL_MODE	(0)
 #define SYSTEM_BALANCE_MODE	(1)
 #define SYSTEM_PWRSAVE_MODE	(2)
 #define SYSTEM_MODE_END 		(SYSTEM_PWRSAVE_MODE + 1)
 #define SYSTEM_PWRSAVE_MODE_MAX_FREQ	(1000000)
+unsigned int power_mode_table[SYSTEM_MODE_END] = {1000000,1200000,1400000};
+*/
 
 #define CAMERA_ENABLE_EMC_MINMIAM_RATE (667000000)
 /* tegra throttling and edp governors require frequencies in the table
    to be in ascending order */
-unsigned int power_mode_table[SYSTEM_MODE_END] = {1000000,1200000,1400000};
 static struct cpufreq_frequency_table *freq_table;
 
 static struct clk *cpu_clk;
@@ -350,6 +352,8 @@ static unsigned int edp_predict_limit(unsigned int cpus)
 	if (system_edp_limits && system_edp_alarm)
 		limit = min(limit, system_edp_limits[cpus - 1]);
 	limit = min(limit, pwr_cap_limits[cpus - 1]);//pwr save
+        if (cpu_edp_limits[edp_thermal_index].temperature > 25 && cpu_edp_limits[edp_thermal_index].temperature < OC_TEMP_MAX )
+           limit = EDP_MAX;
 
 	return limit;
 }
@@ -963,14 +967,14 @@ static int tegra_cpu_init(struct cpufreq_policy *policy)
 	target_cpu_speed[policy->cpu] = policy->cur;
 
 	/* FIXME: what's the actual transition time? */
-	policy->cpuinfo.transition_latency = 300 * 1000;
+	policy->cpuinfo.transition_latency = OC_TRANSITION_LATENCY * 1000;
 
 	policy->shared_type = CPUFREQ_SHARED_TYPE_ALL;
 	cpumask_copy(policy->related_cpus, cpu_possible_mask);
 
 	if (policy->cpu == 0) {
-		/* set to 1.3GHz stock freq on init */
-		policy->max = 1400000;
+		/* stock freq on init */
+		policy->max = OC_DEFAULT;
 		register_pm_notifier(&tegra_cpu_pm_notifier);
 	}
 
