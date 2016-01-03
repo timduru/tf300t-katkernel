@@ -974,7 +974,11 @@ static int tegra_cpu_init(struct cpufreq_policy *policy)
 
 	if (policy->cpu == 0) {
 		/* stock freq on init */
-		policy->max = OC_DEFAULT;
+                unsigned int project_id = tegra3_get_project_id();
+
+		if(project_id  == TEGRA3_PROJECT_TF700T) policy->max = OC_DEFAULT_TF700T;
+                else policy->max = OC_DEFAULT;
+
 		register_pm_notifier(&tegra_cpu_pm_notifier);
 	}
 
