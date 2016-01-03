@@ -373,20 +373,6 @@ KBUILD_CFLAGS   := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
 		   -mfpu=neon -ftree-vectorize
 KBUILD_CFLAGS   += -Wno-error=array-bounds -Wno-error=sequence-point
 
-BASE_GRAPHITE_KERNEL_FLAGS := \
-          -fgraphite \
-          -fgraphite-identity \
-          -floop-flatten \
-          -ftree-loop-linear \
-          -floop-interchange \
-          -floop-strip-mine \
-          -floop-block \
-          -floop-nest-optimize
-
-KBUILD_CFLAGS := \
-            $(KBUILD_CFLAGS) \
-            $(BASE_GRAPHITE_KERNEL_FLAGS)
-
 KBUILD_AFLAGS_KERNEL :=
 KBUILD_CFLAGS_KERNEL :=
 KBUILD_AFLAGS   := -D__ASSEMBLY__
