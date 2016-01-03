@@ -873,6 +873,16 @@ _out:
 extern u64 global_wake_status;
 extern void tegra_exit_lp_mode(void);
 extern void tegra_enter_lp_mode(void);
+
+static int tegra_cpu_get_oc_default()
+{
+    unsigned int project_id = tegra3_get_project_id();
+
+    if(project_id  == TEGRA3_PROJECT_TF700T) return OC_DEFAULT_TF700T;
+    else if(project_id  == TEGRA3_PROJECT_TF201) return OC_DEFAULT_TF201;
+    else return OC_DEFAULT;
+}
+
 void check_cpu_state(void)
 {
 	printk("check_cpu_state cpu_clk->parent->name=%s is_lp_cluster()=%u\n",cpu_clk->parent->name,is_lp_cluster());
@@ -890,7 +900,7 @@ void unlock_cpu_lp_mode(void)
 		check_cpu_state();
 		printk("unlock_cpu_lp_mode: restoring frequency-\n");
 	}
-	tegra_cpu_late_resume_set_speed_cap(1700000);
+	tegra_cpu_late_resume_set_speed_cap(tegra_cpu_get_oc_default());
 }
 
 static int tegra_pm_notify(struct notifier_block *nb, unsigned long event,
@@ -942,7 +952,6 @@ static struct notifier_block tegra_cpu_pm_notifier = {
 	.notifier_call = tegra_pm_notify,
 };
 
-
 static int tegra_cpu_init(struct cpufreq_policy *policy)
 {
 	if (policy->cpu >= CONFIG_NR_CPUS)
@@ -974,11 +983,7 @@ static int tegra_cpu_init(struct cpufreq_policy *policy)
 
 	if (policy->cpu == 0) {
 		/* stock freq on init */
-                unsigned int project_id = tegra3_get_project_id();
-
-		if(project_id  == TEGRA3_PROJECT_TF700T) policy->max = OC_DEFAULT_TF700T;
-		else if(project_id  == TEGRA3_PROJECT_TF201) policy->max = OC_DEFAULT_TF201;
-                else policy->max = OC_DEFAULT;
+                policy->max = tegra_cpu_get_oc_default();
 
 		register_pm_notifier(&tegra_cpu_pm_notifier);
 	}
