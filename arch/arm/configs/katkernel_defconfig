@@ -1333,7 +1333,7 @@ CONFIG_WLAN=y
 # CONFIG_USB_NET_RNDIS_WLAN is not set
 # CONFIG_ATH_COMMON is not set
 CONFIG_BCMDHD=y
-CONFIG_BCMDHD_FW_PATH="/vendor/firmware/bcm4329/fw_bcmdhd.bin"
+CONFIG_BCMDHD_FW_PATH="/vendor/firmware/bcm/fw_bcmdhd.bin"
 CONFIG_BCMDHD_NVRAM_PATH="/data/misc/wifi/nvram.txt"
 # CONFIG_DHD_USE_STATIC_BUF is not set
 # CONFIG_DHD_USE_SCHED_SCAN is not set
