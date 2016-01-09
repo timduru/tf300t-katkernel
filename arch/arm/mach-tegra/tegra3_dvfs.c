@@ -1128,7 +1128,46 @@ static int __init tegra_dvfs_init_core_cap(void)
 		return 0;
 	}
 	pr_info("tegra dvfs: tegra sysfs cap interface is initialized\n");
-
 	return 0;
 }
+
+// KK INFO
+static struct kobject *target_info_sysfs_kobj;
+static ssize_t get_target_info(char* buf) 
+{ 
+        int cpu_speedo_id = tegra_cpu_speedo_id();
+        int soc_speedo_id = tegra_soc_speedo_id();
+        int cpu_process_id = tegra_cpu_process_id();
+        int core_process_id = tegra_core_process_id();
+        unsigned int project_id = tegra3_get_project_id();
+
+	return sprintf(buf, "soc_speedo:%d, cpu_speedo:%d, cpu_process:%d, core_process:%d, project_id:%d\n", soc_speedo_id,cpu_speedo_id,cpu_process_id,core_process_id,project_id ); 
+}
+
+static ssize_t target_info_show(struct kobject *kobj, struct kobj_attribute *attr, char *buf) { return get_target_info(buf); }
+
+static struct kobj_attribute target_info = __ATTR(info, S_IRUGO, target_info_show, NULL);
+
+const struct attribute *target_info_attributes[] = {
+        &target_info.attr,
+        NULL,
+};
+
+static int __init init_target_info_sysfs(void)
+{
+	target_info_sysfs_kobj = kobject_create_and_add("target_info", kernel_kobj);
+        if (!target_info_sysfs_kobj) { pr_err("failed to create sysfs target_info object"); return 0; }
+
+        if (sysfs_create_files(target_info_sysfs_kobj, target_info_attributes)) { pr_err("failed to create sysfs target_info interface"); return 0; }
+        pr_info("tegra sysfs target_info interface is initialized\n");
+	
+	char info[1024];
+	get_target_info(info);
+	printk("TTT target specs: %s", info);
+        return 0;
+}
+
+
+
 late_initcall(tegra_dvfs_init_core_cap);
+late_initcall(init_target_info_sysfs);
