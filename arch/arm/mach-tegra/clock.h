@@ -37,6 +37,7 @@
 #define OC_DEFAULT_TF700T 1700000
 #define OC_TRANSITION_LATENCY 50 // 300 ori
 #define OC_TEMP_MAX 66 
+#define GPU_CLK 600000000
 
 
 
