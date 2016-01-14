@@ -35,10 +35,10 @@
 #define OC_DEFAULT 1500000
 #define OC_DEFAULT_TF201 1300000
 #define OC_DEFAULT_TF700T 1700000
-#define OC_TRANSITION_LATENCY 50 // 300 ori
+#define OC_TRANSITION_LATENCY 300 // 300 ori
 #define OC_TEMP_MAX 66 
-#define GPU_CLK 600000000
-#define GPU_CLK_DVFS 600000 // used only if no GPU OC sysfs
+#define GPU_CLK 520000000
+#define GPU_CLK_DVFS 520000 // used only if no GPU OC sysfs
 
 
 
