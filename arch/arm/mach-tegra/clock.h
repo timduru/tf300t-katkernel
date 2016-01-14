@@ -38,6 +38,7 @@
 #define OC_TRANSITION_LATENCY 50 // 300 ori
 #define OC_TEMP_MAX 66 
 #define GPU_CLK 600000000
+#define GPU_CLK_DVFS 600000 // used only if no GPU OC sysfs
 
 
 
