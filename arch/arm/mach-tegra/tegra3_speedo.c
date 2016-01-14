@@ -554,7 +554,7 @@ int tegra_package_id(void)
  */
 static const int cpu_speedo_nominal_millivolts[] =
 /* speedo_id 0,    1,    2,    3,    4,    5,    6,    7,    8,   9,  10,  11,   12,    13,  14,  15 */
-	{ 1125, 1350, 1350, 1350, 1237, 1350, 1237, 1350, 1150, 1007, 916, 850, 1350,  1350, 950, 900};
+	{ 1125, 1350, 1350, 1350, 1237, 1350, 1237, 1300, 1150, 1007, 916, 850, 1350,  1350, 950, 900};
 
 int tegra_cpu_speedo_mv(void)
 {
@@ -572,9 +572,9 @@ int tegra_core_speedo_mv(void)
 			return 1350;
 		/* fall thru for T30L or T30SL */
 	case 2:
-		if (cpu_speedo_id != 13)
-			return 1350;
-		/* T37 */
+		if (cpu_speedo_id != 13 && cpu_speedo_id != 12)
+			return 1300;
+
 		return 1350;
 	case 3:
 		return 1350;
