@@ -248,7 +248,7 @@ static struct dvfs cpu_0_dvfs_table[] = {
 static struct dvfs core_dvfs_table[] = {
 	/* Core voltages (mV):		    950,   1000,   1050,   1100,   1150,    1200,    1250,    1300,    1350 */
 	/* Clock limits for internal blocks, PLLs 
-                       soc_speedo (=2 for TF300T and TF700T)
+                       soc_speedo (=2 for TF300T if forced to cpu_speedo5 and TF700T, =1 for TF300T if normal cpu_speedo 7)
                             v   _______not used                      
                             v  /                       */
 	CORE_DVFS("cpu_lp", 0, 1, KHZ,        1, 294000, 342000, 427000, 475000,  500000,  500000,  500000,  500000),
