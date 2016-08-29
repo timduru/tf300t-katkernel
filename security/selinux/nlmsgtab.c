@@ -24,6 +24,8 @@
 #include "av_permissions.h"
 #include "security.h"
 
+#define SOCK_DIAG_BY_FAMILY 20
+
 struct nlmsg_perm {
 	u16	nlmsg_type;
 	u32	perm;
