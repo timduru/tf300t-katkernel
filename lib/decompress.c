@@ -11,7 +11,6 @@
 #include <linux/decompress/unxz.h>
 #include <linux/decompress/inflate.h>
 #include <linux/decompress/unlzo.h>
-#include <linux/decompress/unlz4.h>
 
 #include <linux/types.h>
 #include <linux/string.h>
