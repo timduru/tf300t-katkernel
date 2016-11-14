@@ -114,7 +114,7 @@ static bool check_for_delayed_trigger(struct idletimer_tg *timer,
 	return state;
 }
 
-static void notify_netlink_uevent(const char *label, struct idletimer_tg *timer)
+static void notify_netlink_uevent(const char *iface, struct idletimer_tg *timer)
 {
 	char iface_msg[NLMSG_MAX_SIZE];
 	char state_msg[NLMSG_MAX_SIZE];
@@ -126,8 +126,8 @@ static void notify_netlink_uevent(const char *label, struct idletimer_tg *timer)
 	uint64_t time_ns;
 	bool state;
 
-	res = snprintf(iface_msg, NLMSG_MAX_SIZE, "LABEL=%s",
-		       label);
+	res = snprintf(iface_msg, NLMSG_MAX_SIZE, "INTERFACE=%s",
+		       iface);
 	if (NLMSG_MAX_SIZE <= res) {
 		pr_err("message too long (%d)", res);
 		return;
