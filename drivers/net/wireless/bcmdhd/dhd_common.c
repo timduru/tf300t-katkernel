@@ -1770,9 +1770,9 @@ dhd_get_dtim_skip(dhd_pub_t *dhd)
 	int bcn_li_dtim = 1;
 	char buf[128];
 	int ret = -1;
-	int dtim_assoc = 0;
+	int dtim_period = 0;
 	int ap_beacon = 0;
-
+	int allowed_skip_dtim_cnt = 0;
 	/* Check if associated */
 	if (dhd_is_associated(dhd, NULL, NULL) == FALSE) {
 		DHD_TRACE(("%s NOT assoc ret %d\n", __FUNCTION__, ret));
@@ -1789,7 +1789,7 @@ dhd_get_dtim_skip(dhd_pub_t *dhd)
 	ap_beacon = dtoh32(*(int *)buf);
 
 	/* if APs Beacon more  that 100msec do no dtim skip */
-	if (ap_beacon > 100) {
+	if (ap_beacon > MAX_DTIM_SKIP_BEACON_INTERVAL) {
 		DHD_ERROR(("%s no dtim skip for AP with %d beacon\n", __FUNCTION__, ap_beacon));
 		goto exit;
 	}
@@ -1797,27 +1797,29 @@ dhd_get_dtim_skip(dhd_pub_t *dhd)
 
 	/* Read DTIM value if associated */
 	memset(buf, 0, sizeof(buf));
-	bcm_mkiovar("dtim_assoc", 0, 0, buf, sizeof(buf));
+	bcm_mkiovar("dtim_period", 0, 0, buf, sizeof(buf));
 	if ((ret = dhd_wl_ioctl_cmd(dhd, WLC_GET_VAR, buf, sizeof(buf), FALSE, 0)) < 0) {
+
 		DHD_ERROR(("%s failed code %d\n", __FUNCTION__, ret));
 		goto exit;
 	}
 
-	dtim_assoc = dtoh32(*(int *)buf);
+	dtim_period = dtoh32(*(int *)buf);
 
 	DHD_ERROR(("%s beacom=%d msec bcn_li_dtim=%d DTIM=%d Listen=%d\n",
-		__FUNCTION__, ap_beacon, bcn_li_dtim, dtim_assoc, LISTEN_INTERVAL));
+		__FUNCTION__, ap_beacon, bcn_li_dtim, dtim_period, LISTEN_INTERVAL));
 
 	/* if not assocated just eixt */
-	if (dtim_assoc == 0) {
+	if (dtim_period == 0) {
 		goto exit;
 	}
 
 	/* check if sta listen interval fits into AP dtim */
-	if (dtim_assoc > LISTEN_INTERVAL) {
+	if (dtim_period > LISTEN_INTERVAL) {
+                bcn_li_dtim = NO_DTIM_SKIP;
 		/* AP DTIM to big for our Listen Interval : no dtim skiping */
 		DHD_ERROR(("%s DTIM=%d > Listen=%d : too big ...\n",
-			__FUNCTION__, dtim_assoc, LISTEN_INTERVAL));
+			__FUNCTION__, dtim_period, LISTEN_INTERVAL));
 		goto exit;
 	}
 
@@ -1826,9 +1828,15 @@ dhd_get_dtim_skip(dhd_pub_t *dhd)
 	else
 		bcn_li_dtim = dhd->dtim_skip;
 
-	if ((bcn_li_dtim * dtim_assoc) > LISTEN_INTERVAL) {
+       if ((dtim_period * ap_beacon * bcn_li_dtim) > MAX_DTIM_ALLOWED_INTERVAL) {
+                allowed_skip_dtim_cnt = MAX_DTIM_ALLOWED_INTERVAL / (dtim_period * ap_beacon);
+                bcn_li_dtim = (allowed_skip_dtim_cnt != 0) ? allowed_skip_dtim_cnt : NO_DTIM_SKIP;
+       }
+
+
+	if ((bcn_li_dtim * dtim_period) > LISTEN_INTERVAL) {
 		/* Round up dtim_skip to fit into STAs Listen Interval */
-		bcn_li_dtim = (int)(LISTEN_INTERVAL / dtim_assoc);
+		bcn_li_dtim = (int)(LISTEN_INTERVAL / dtim_period);
 		DHD_TRACE(("%s agjust dtim_skip as %d\n", __FUNCTION__, bcn_li_dtim));
 	}
 
