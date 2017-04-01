@@ -2065,7 +2065,7 @@ static ssize_t asusdec_store_ec_wakeup(struct device *class,struct device_attrib
 		ASUSDEC_NOTICE("Keep EC active when PAD in LP0\n");
 	}
 
-	return 0 ;
+	return count ;
 }
 
 static ssize_t asusdec_show_drain(struct device *class,struct device_attribute *attr,char *buf)
