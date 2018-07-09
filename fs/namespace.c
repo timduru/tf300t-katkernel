@@ -31,6 +31,7 @@
 #include <linux/idr.h>
 #include <linux/fs_struct.h>
 #include <linux/fsnotify.h>
+#include <linux/proc_fs.h>
 #include <asm/uaccess.h>
 #include <asm/unistd.h>
 #include "pnode.h"
@@ -2753,6 +2754,59 @@ void put_mnt_ns(struct mnt_namespace *ns)
 	kfree(ns);
 }
 EXPORT_SYMBOL(put_mnt_ns);
+
+static void *mntns_get(struct task_struct *task)
+{
+   struct mnt_namespace *ns;
+   rcu_read_lock();
+   ns = task->nsproxy->mnt_ns;
+   get_mnt_ns(ns);
+   rcu_read_unlock();
+   return ns;
+}
+
+static void mntns_put(void *ns)
+{
+   put_mnt_ns(ns);
+}
+
+static int mntns_install(struct nsproxy *nsproxy, void *ns)
+{
+   struct fs_struct *fs = current->fs;
+   struct mnt_namespace *mnt_ns = ns;
+   struct path root;
+
+   if (fs->users != 1)
+       return -EINVAL;
+
+   get_mnt_ns(mnt_ns);
+   put_mnt_ns(nsproxy->mnt_ns);
+   nsproxy->mnt_ns = mnt_ns;
+
+   /* Find the root */
+   root.mnt    = mnt_ns->root;
+   root.dentry = mnt_ns->root->mnt_root;
+   path_get(&root);
+   while(d_mountpoint(root.dentry) && follow_down(&root));
+
+   /* Update the pwd and root */
+   path_get(&root);
+   path_get(&root);
+   path_put(&fs->root);
+   path_put(&fs->pwd);
+   fs->root = root;
+   fs->pwd  = root;
+   path_put(&root);
+
+   return 0;
+}
+
+const struct proc_ns_operations mntns_operations = {
+   .name       = "mnt",
+   .get        = mntns_get,
+   .put        = mntns_put,
+   .install    = mntns_install,
+};
 
 struct vfsmount *kern_mount_data(struct file_system_type *type, void *data)
 {
